@@ -12,6 +12,14 @@ and a **Download All** button — with a live 0–100 % download/install progres
 
 ---
 
+> **⚠️ DoD amendment — 2026-07-15.** Two standing items apply to **every phase's** Definition of Done:
+>
+> - **`/simplify` pass** — run **`/simplify` on the full phase diff** in unison with **`/code-review`**
+>   and **`/security-review`**, applying its cleanups (reuse over duplication, no speculative
+>   abstraction/config, remove orphans the change created) before the phase is done and before any push.
+> - **All 18 locale keys updated** — any new or changed UI string is added to **all 18** Fluent locale
+>   catalogs (every locale gets the key); `i18n:lint` parity must be green.
+
 ## Charter invariants (never violated)
 
 1. **Local-first & honest.** No accounts, no telemetry. Every number shown is real — download

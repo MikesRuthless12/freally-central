@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Freally Central",
+  "version": "0.1.0",
+  "identifier": "com.havocsoftware.freally-central",
+  "build": {
+    "beforeDevCommand": "npm --prefix ../ui run dev",
+    "beforeBuildCommand": "npm --prefix ../ui run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../ui/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Freally Central",
+        "width": 1120,
+        "height": 760,
+        "minWidth": 720,
+        "minHeight": 520
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "One hub for every Freally app.",
+    "longDescription": "A desktop hub that lists every Freally-brand app in one place: per-OS downloads, live install/update status, changelogs, and real download counts. Local-first, no accounts, no telemetry."
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/MikesRuthless12/freally-central/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERFQkYyNkI1NTdGM0RFM0MKUldRODN2Tlh0U2EvM2xkSnMydkRRWUx3UWd2TGxLenlyR2RiMmdKS1NhNzZFNlRsWXJoaEROaXYK"
+    }
+  }
+}
