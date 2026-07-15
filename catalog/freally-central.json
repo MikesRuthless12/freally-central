@@ -1,0 +1,48 @@
+{
+  "$comment": "Freally Central product catalog. The SOURCE OF TRUTH for the hub grid. Host this on GitHub Pages (e.g. https://mikesruthless12.github.io/freally-central/freally-central.json) so the grid updates without shipping a new Central build. Central resolves LIVE data (latest version + date, per-OS download_count, installer URLs) from the GitHub Releases API against each app's `assets` match patterns; this file holds only what the API cannot give (marketing copy, icon, start date, OS->asset rules).",
+  "schemaVersion": 1,
+  "brand": "Freally",
+  "apps": [
+    {
+      "id": "freally-capture",
+      "name": "Freally Capture",
+      "tagline": "Record and stream like a studio — one clean app.",
+      "description": "A local-first, cross-platform live-streaming & recording studio (OBS-class): a real-time GPU scene compositor, multi-track recording, and multistream to every platform at once — entirely on your machine. No accounts, no telemetry, no cloud.",
+      "features": [
+        "Owned wgpu GPU scene compositor with per-source filters & transitions",
+        "Multi-track recording (hardware encoders + the owned lossless codec)",
+        "Multistream to Twitch/YouTube/Kick at once (RTMP/SRT/WHIP)",
+        "Virtual camera, replay buffer, downstream keyers, 3D transforms",
+        "18-language UI"
+      ],
+      "icon": "https://mikesruthless12.github.io/freally-capture/freally-icon.png",
+      "startedDate": "2026-06-30",
+      "repo": "MikesRuthless12/freally-capture",
+      "site": "https://mikesruthless12.github.io/freally-capture/index.html",
+      "changelog": "https://mikesruthless12.github.io/freally-capture/changelog.html",
+      "assets": {
+        "windows": "\\.(exe|msi)$",
+        "macos": "\\.dmg$",
+        "linux": "\\.(AppImage|deb|rpm)$"
+      }
+    },
+    {
+      "$comment": "TEMPLATE for the other Freally apps — fill in real repo/site/icon/startedDate. Freally Studio is intentionally EXCLUDED until its own roadmap exists.",
+      "id": "freally-snipper",
+      "name": "Freally Snipper",
+      "tagline": "TODO — one-line pitch.",
+      "description": "TODO — a paragraph describing the app.",
+      "features": ["TODO — cool feature", "TODO — cool feature"],
+      "icon": "https://REPLACE/icon.png",
+      "startedDate": "YYYY-MM-DD",
+      "repo": "MikesRuthless12/freally-snipper",
+      "site": "https://REPLACE/index.html",
+      "changelog": "https://REPLACE/changelog.html",
+      "assets": {
+        "windows": "\\.(exe|msi)$",
+        "macos": "\\.dmg$",
+        "linux": "\\.(AppImage|deb|rpm)$"
+      }
+    }
+  ]
+}
