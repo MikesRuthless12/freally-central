@@ -5,9 +5,10 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **planning.** This folder holds the product's roadmap and build-prompts guide.
-> Nothing is built yet — see `Freally-Central-Feature-Roadmap.md` for the plan and
-> `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
+> Status: **Phase 0 complete** — the repo, the 3-OS CI matrix, the signed release pipeline,
+> and the GitHub Pages docs site + catalog manifest are stood up. No product code yet; Phase 1
+> (the Tauri shell + catalog grid) is next. See `Freally-Central-Feature-Roadmap.md` for the
+> plan and `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
 
 ## What it is
 
@@ -54,6 +55,34 @@ Freally Central/
    ├─ documentation.html              (docs hub)
    └─ styles.css                      (shared brand stylesheet)
 ```
+
+## Development & release
+
+The repo, CI/CD, and docs site are stood up (Phase 0). No product code yet — Phase 1
+scaffolds the Tauri v2 + React + Rust app.
+
+- **CI** — `.github/workflows/ci.yml` runs a 3-OS matrix (Windows, macOS, Linux): Rust
+  `fmt`/`clippy`/`test` + `cargo deny`, and UI `typecheck`/`lint`/`test`/`i18n:lint` +
+  Playwright `test:e2e`. The steps are existence-guarded, so the matrix is green today and
+  the real checks activate automatically once Phase 1 adds `Cargo.toml` / `ui/`. Branch
+  protection on `main` requires the **CI Success** gate.
+- **Pages** — `.github/workflows/pages.yml` publishes `docs/` and serves the catalog manifest:
+  - Site — https://mikesruthless12.github.io/freally-central/
+  - Manifest — https://mikesruthless12.github.io/freally-central/freally-central.json
+- **Releases** — pushing a `v*` tag runs `.github/workflows/release.yml`, which builds and
+  **signs** the Tauri installers for all three OSes, publishes a GitHub Release (draft), and
+  writes the signed `latest.json` updater endpoint. It activates once Phase 1 adds the app.
+
+**Required repository secrets** (Settings → Secrets and variables → Actions) before the first
+signed release:
+
+| Secret | Purpose |
+|--------|---------|
+| `TAURI_SIGNING_PRIVATE_KEY` | Updater signing key (from `tauri signer generate`) |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Password for that key |
+| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` | macOS code-signing + notarization (optional until a public macOS release) |
+
+Windows Authenticode signing is configured in `src-tauri/tauri.conf.json` (added in Phase 1).
 
 ## License
 
