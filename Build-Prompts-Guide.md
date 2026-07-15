@@ -39,9 +39,13 @@ updater endpoint resolves; Pages serves `freally-central.json` at a stable URL.
 
 ## P1.1 — Shell & theme (FC-01)
 Scaffold a Tauri v2 app: Rust core crate + a Vite/React/TS UI. Dark theme, the Freally icon and
-fonts, a single main window. Add the workspace scripts (`build`, `typecheck`, `lint`, `test`,
-`i18n:lint`) mirroring Freally Capture's `package.json`.
-**Accept:** the app launches and shows an empty themed window on all 3 OSes; `typecheck`/`lint` pass.
+fonts, a single main window. Generate the app icon set from the canonical source
+`images/freally_app_icon.png` with `npx tauri icon images/freally_app_icon.png` and wire it as the
+Tauri `bundle.icon` — the same icon used for the docs logo/favicon (see `images/README.md`). Add
+the workspace scripts (`build`, `typecheck`, `lint`, `test`, `i18n:lint`) mirroring Freally
+Capture's `package.json`.
+**Accept:** the app launches and shows an empty themed window on all 3 OSes; the window/taskbar
+icon is the Freally Central icon; `typecheck`/`lint` pass.
 
 ## P1.2 — i18n foundation (FC-05)
 Port Freally Capture's Fluent i18n runtime: `ui/src/i18n/` with `en.ftl` + the 17 other locales
