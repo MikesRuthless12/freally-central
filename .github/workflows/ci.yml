@@ -69,8 +69,10 @@ jobs:
         if: steps.detect.outputs.present == 'true'
         run: cargo test --all --all-features
 
+      # cargo-deny-action is a Docker container action (Linux-only). The dependency
+      # graph it checks is OS-independent, so running it once on Linux is enough.
       - name: cargo-deny
-        if: steps.detect.outputs.present == 'true'
+        if: steps.detect.outputs.present == 'true' && runner.os == 'Linux'
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
