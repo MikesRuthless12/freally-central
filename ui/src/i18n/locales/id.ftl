@@ -67,3 +67,27 @@ updates-installed = Pembaruan terpasang.
 updates-restart-now = Mulai ulang sekarang
 updates-restart-later = Nanti
 updates-try-again = Coba lagi
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = Unduh
+tagline-freally-capture = Rekam dan streaming seperti studio — satu aplikasi rapi.
+tagline-freally-vault = Kata sandi, passkey & rahasia Anda — terenkripsi, local-first, milik Anda.
+tagline-freally-player = Memutar apa saja. Dengan indah. Tanpa iklan, tanpa spyware.
+tagline-freally-av = Freally Anti-Virus — segera hadir.
+tagline-freally-studio = Studio musik berbantuan AI — segera hadir.
+tagline-freally-sourcerer = Aplikasi Freally mendatang.
+tagline-freally-file-manager = Pengelola berkas lintas platform — segera hadir.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = Studio live-streaming & perekaman local-first dan lintas platform (kelas OBS): compositor adegan GPU real-time, perekaman multi-track, dan multistream ke setiap platform sekaligus — sepenuhnya di mesin Anda. Tanpa akun, tanpa telemetri, tanpa cloud.
+desc-freally-vault = Pengelola kata sandi, passkey & rahasia yang local-first, zero-knowledge, dan terenkripsi ujung-ke-ujung. Kompatibel dengan KeePass, inti Rust yang aman memori, sepenuhnya gratis — brankas Anda tidak pernah meninggalkan mesin Anda.
+desc-freally-player = Pemutar media local-first dan lintas platform yang memutar hampir apa saja dengan akselerasi perangkat keras — UI modern, pustaka media sungguhan, dan streaming, tanpa iklan dan tanpa telemetri.
+desc-freally-av = Anti-virus local-first dari Freally untuk Windows, macOS, dan Linux. Sedang disiapkan — belum tersedia untuk diunduh.
+desc-freally-studio = DAW berfitur lengkap dengan pembuatan pola AI di 35+ genre, mixer bergaya FL, timeline aransemen, dan editor klip audio. Pra-rilis — belum tersedia untuk diunduh.
+desc-freally-sourcerer = Aplikasi Freally ini sedang disiapkan. Belum tersedia untuk diunduh.
+desc-freally-file-manager = Aplikasi Freally ini sedang disiapkan. Belum tersedia untuk diunduh.
+feat-freally-capture-1 = Compositor adegan GPU milik sendiri (wgpu) dengan filter & transisi per sumber
+feat-freally-capture-2 = Perekaman multi-track (encoder perangkat keras + codec lossless milik sendiri)
+feat-freally-capture-3 = Multistream ke Twitch/YouTube/Kick sekaligus (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Kamera virtual, buffer replay, downstream keyer, dan transformasi 3D
+feat-freally-capture-5 = Antarmuka 18 bahasa

@@ -67,3 +67,27 @@ updates-installed = 更新已安装。
 updates-restart-now = 立即重启
 updates-restart-later = 稍后
 updates-try-again = 重试
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = 下载
+tagline-freally-capture = 像录音棚一样录制与直播 — 一个简洁的应用。
+tagline-freally-vault = 你的密码、通行密钥与机密 — 加密、本地优先、属于你。
+tagline-freally-player = 什么都能播放。优雅流畅。无广告、无间谍软件。
+tagline-freally-av = Freally Anti-Virus — 即将推出。
+tagline-freally-studio = AI 辅助的音乐工作室 — 即将推出。
+tagline-freally-sourcerer = 即将推出的 Freally 应用。
+tagline-freally-file-manager = 跨平台文件管理器 — 即将推出。
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = 本地优先、跨平台的直播与录制工作室（OBS 级）：实时 GPU 场景合成器、多轨录制，并可同时向所有平台多路推流 — 全部在你的设备上完成。无账户、无遥测、无云端。
+desc-freally-vault = 本地优先、零知识、端到端加密的密码、通行密钥与机密管理器。兼容 KeePass，内存安全的 Rust 内核，完全免费 — 你的保险库永不离开你的设备。
+desc-freally-player = 本地优先、跨平台的媒体播放器，借助硬件加速几乎什么都能播放 — 现代界面、真正的媒体库和流媒体，无广告、无遥测。
+desc-freally-av = Freally 面向 Windows、macOS 和 Linux 的本地优先杀毒软件。开发中 — 暂时无法下载。
+desc-freally-studio = 一款功能齐全的 DAW，支持 35+ 种风格的 AI 编曲生成、FL 风格混音器、编排时间线和音频剪辑编辑器。预发布 — 暂时无法下载。
+desc-freally-sourcerer = 这款 Freally 应用正在开发中。暂时无法下载。
+desc-freally-file-manager = 这款 Freally 应用正在开发中。暂时无法下载。
+feat-freally-capture-1 = 自研 wgpu GPU 场景合成器，支持逐源滤镜与转场
+feat-freally-capture-2 = 多轨录制（硬件编码器 + 自研无损编解码器）
+feat-freally-capture-3 = 同时向 Twitch/YouTube/Kick 多路推流（RTMP/SRT/WHIP）
+feat-freally-capture-4 = 虚拟摄像头、回放缓冲、下游键控和 3D 变换
+feat-freally-capture-5 = 18 种语言界面

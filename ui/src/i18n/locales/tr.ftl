@@ -67,3 +67,27 @@ updates-installed = Güncelleme kuruldu.
 updates-restart-now = Şimdi yeniden başlat
 updates-restart-later = Sonra
 updates-try-again = Tekrar dene
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = İndir
+tagline-freally-capture = Stüdyo gibi kaydedin ve yayınlayın — tek temiz uygulama.
+tagline-freally-vault = Parolalarınız, passkey'leriniz ve sırlarınız — şifreli, local-first, sizin.
+tagline-freally-player = Her şeyi oynatır. Şık biçimde. Reklamsız, casus yazılımsız.
+tagline-freally-av = Freally Anti-Virus — yakında.
+tagline-freally-studio = Yapay zekâ destekli müzik stüdyosu — yakında.
+tagline-freally-sourcerer = Yakında gelecek bir Freally uygulaması.
+tagline-freally-file-manager = Çapraz platform dosya yöneticisi — yakında.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = Local-first, çapraz platform canlı yayın ve kayıt stüdyosu (OBS sınıfı): gerçek zamanlı GPU sahne birleştirici, çok parçalı kayıt ve tüm platformlara aynı anda çoklu yayın — tamamen kendi makinenizde. Hesap yok, telemetri yok, bulut yok.
+desc-freally-vault = Local-first, sıfır bilgi (zero-knowledge), uçtan uca şifreli parola, passkey ve sır yöneticisi. KeePass uyumlu, bellek güvenli Rust çekirdeği, tamamen ücretsiz — kasanız makinenizden asla çıkmaz.
+desc-freally-player = Local-first, çapraz platform bir medya oynatıcı; donanım hızlandırmayla neredeyse her şeyi oynatır — modern arayüz, gerçek bir medya kütüphanesi ve akış, reklamsız ve telemetrisiz.
+desc-freally-av = Freally'nin Windows, macOS ve Linux için local-first antivirüsü. Yolda — henüz indirilemiyor.
+desc-freally-studio = 35'ten fazla türde yapay zekâ ile desen üretimi, FL tarzı mikser, düzenleme zaman çizelgesi ve ses klibi düzenleyicisi olan tam donanımlı bir DAW. Ön sürüm — henüz indirilemiyor.
+desc-freally-sourcerer = Bu Freally uygulaması yolda. Henüz indirilemiyor.
+desc-freally-file-manager = Bu Freally uygulaması yolda. Henüz indirilemiyor.
+feat-freally-capture-1 = Kaynak başına filtre ve geçişlerle kendi wgpu GPU sahne birleştiricisi
+feat-freally-capture-2 = Çok parçalı kayıt (donanım kodlayıcılar + kendi kayıpsız codec'i)
+feat-freally-capture-3 = Aynı anda Twitch/YouTube/Kick'e çoklu yayın (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Sanal kamera, tekrar arabelleği, downstream keyer'lar ve 3D dönüşümler
+feat-freally-capture-5 = 18 dilli arayüz

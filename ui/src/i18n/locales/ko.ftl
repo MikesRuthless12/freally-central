@@ -67,3 +67,27 @@ updates-installed = 업데이트가 설치되었습니다.
 updates-restart-now = 지금 다시 시작
 updates-restart-later = 나중에
 updates-try-again = 다시 시도
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = 다운로드
+tagline-freally-capture = 스튜디오처럼 녹화하고 스트리밍 — 하나의 앱으로.
+tagline-freally-vault = 비밀번호, 패스키, 비밀 — 암호화, 로컬 우선, 당신의 것.
+tagline-freally-player = 무엇이든 재생. 아름답게. 광고 없음, 스파이웨어 없음.
+tagline-freally-av = Freally Anti-Virus — 출시 예정.
+tagline-freally-studio = AI 지원 음악 스튜디오 — 출시 예정.
+tagline-freally-sourcerer = 곧 출시될 Freally 앱.
+tagline-freally-file-manager = 크로스플랫폼 파일 관리자 — 출시 예정.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = 로컬 우선, 크로스플랫폼 라이브 스트리밍 및 녹화 스튜디오(OBS급): 실시간 GPU 장면 컴포지터, 멀티트랙 녹화, 모든 플랫폼 동시 멀티스트리밍 — 전부 당신의 기기에서. 계정 없음, 텔레메트리 없음, 클라우드 없음.
+desc-freally-vault = 로컬 우선, 제로 지식, 종단 간 암호화 비밀번호·패스키·비밀 관리자. KeePass 호환, 메모리 안전 Rust 코어, 완전 무료 — 당신의 보관함은 절대 기기를 벗어나지 않습니다.
+desc-freally-player = 로컬 우선, 크로스플랫폼 미디어 플레이어로 하드웨어 가속으로 거의 모든 것을 재생 — 현대적인 UI, 진짜 미디어 라이브러리, 스트리밍. 광고 없음, 텔레메트리 없음.
+desc-freally-av = Windows, macOS, Linux를 위한 Freally의 로컬 우선 백신. 준비 중 — 아직 다운로드할 수 없습니다.
+desc-freally-studio = 35개 이상의 장르에 걸친 AI 패턴 생성, FL 스타일 믹서, 편곡 타임라인, 오디오 클립 편집기를 갖춘 완전한 기능의 DAW. 프리릴리스 — 아직 다운로드할 수 없습니다.
+desc-freally-sourcerer = 이 Freally 앱은 준비 중입니다. 아직 다운로드할 수 없습니다.
+desc-freally-file-manager = 이 Freally 앱은 준비 중입니다. 아직 다운로드할 수 없습니다.
+feat-freally-capture-1 = 소스별 필터 및 전환을 갖춘 자체 wgpu GPU 장면 컴포지터
+feat-freally-capture-2 = 멀티트랙 녹화(하드웨어 인코더 + 자체 무손실 코덱)
+feat-freally-capture-3 = Twitch/YouTube/Kick 동시 멀티스트리밍(RTMP/SRT/WHIP)
+feat-freally-capture-4 = 가상 카메라, 리플레이 버퍼, 다운스트림 키어, 3D 변환
+feat-freally-capture-5 = 18개 언어 UI

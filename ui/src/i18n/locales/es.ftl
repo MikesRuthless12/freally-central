@@ -67,3 +67,27 @@ updates-installed = Actualización instalada.
 updates-restart-now = Reiniciar ahora
 updates-restart-later = Más tarde
 updates-try-again = Reintentar
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = Descargar
+tagline-freally-capture = Graba y transmite como un estudio: una sola app.
+tagline-freally-vault = Tus contraseñas, passkeys y secretos: cifrados, local-first, tuyos.
+tagline-freally-player = Reproduce de todo. Con estilo. Sin anuncios ni spyware.
+tagline-freally-av = Freally Anti-Virus: próximamente.
+tagline-freally-studio = Un estudio de música asistido por IA: próximamente.
+tagline-freally-sourcerer = Una próxima app de Freally.
+tagline-freally-file-manager = Un gestor de archivos multiplataforma: próximamente.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = Un estudio de streaming y grabación local-first y multiplataforma (nivel OBS): un compositor de escenas por GPU en tiempo real, grabación multipista y multistreaming a todas las plataformas a la vez, totalmente en tu equipo. Sin cuentas, sin telemetría, sin nube.
+desc-freally-vault = Un gestor de contraseñas, passkeys y secretos local-first, de conocimiento cero y cifrado de extremo a extremo. Compatible con KeePass, núcleo Rust seguro en memoria, completamente gratis: tu bóveda nunca sale de tu equipo.
+desc-freally-player = Un reproductor multimedia local-first y multiplataforma que reproduce prácticamente todo con aceleración por hardware: interfaz moderna, una biblioteca multimedia real y streaming, sin anuncios ni telemetría.
+desc-freally-av = El antivirus local-first de Freally para Windows, macOS y Linux. En camino: aún no disponible para descargar.
+desc-freally-studio = Una DAW completa con generación de patrones por IA en más de 35 géneros, un mezclador estilo FL, línea de tiempo de arreglos y editor de clips de audio. Versión previa: aún no disponible para descargar.
+desc-freally-sourcerer = Esta app de Freally está en camino. Aún no disponible para descargar.
+desc-freally-file-manager = Esta app de Freally está en camino. Aún no disponible para descargar.
+feat-freally-capture-1 = Compositor de escenas por GPU propio (wgpu) con filtros y transiciones por fuente
+feat-freally-capture-2 = Grabación multipista (codificadores por hardware + el códec sin pérdidas propio)
+feat-freally-capture-3 = Multistreaming a Twitch/YouTube/Kick a la vez (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Cámara virtual, búfer de repetición, keyers de salida (downstream) y transformaciones 3D
+feat-freally-capture-5 = Interfaz en 18 idiomas

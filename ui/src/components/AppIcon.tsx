@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { CatalogApp } from "../catalog/types";
 
 interface AppIconProps {
@@ -11,13 +11,19 @@ function monogram(name: string): string {
   return (stripped || name).charAt(0).toUpperCase() || "F";
 }
 
-// The app's own icon is the big card image. If it's missing or fails to load
-// (offline, coming-soon app with no hosted icon), fall back to a monogram so the
-// grid always renders something legible.
+// The app's own icon is the big card image, at a uniform full-bleed size. We
+// prefer the icon bundled with the app (instant, offline, never cache-stale),
+// then the manifest's remote icon, then a monogram — so the grid always renders
+// something legible.
 export function AppIcon({ app, size }: AppIconProps) {
-  const [failed, setFailed] = useState(false);
+  const sources = useMemo(
+    () => [`/app-icons/${app.id}.png`, app.icon].filter((s): s is string => Boolean(s)),
+    [app.id, app.icon],
+  );
+  const [index, setIndex] = useState(0);
+  const src = sources[index];
 
-  if (!app.icon || failed) {
+  if (!src) {
     return (
       <div
         className="app-icon app-icon--mono"
@@ -32,12 +38,12 @@ export function AppIcon({ app, size }: AppIconProps) {
   return (
     <img
       className="app-icon"
-      src={app.icon}
+      src={src}
       alt=""
       width={size}
       height={size}
       loading="lazy"
-      onError={() => setFailed(true)}
+      onError={() => setIndex((i) => i + 1)}
     />
   );
 }

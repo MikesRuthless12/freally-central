@@ -67,3 +67,27 @@ updates-installed = Обновление установлено.
 updates-restart-now = Перезапустить
 updates-restart-later = Позже
 updates-try-again = Повторить
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = Скачать
+tagline-freally-capture = Записывайте и стримьте как в студии — одно приложение.
+tagline-freally-vault = Ваши пароли, passkey и секреты — зашифрованы, local-first, ваши.
+tagline-freally-player = Играет всё. Красиво. Без рекламы и шпионов.
+tagline-freally-av = Freally Anti-Virus — скоро.
+tagline-freally-studio = Музыкальная студия с ИИ — скоро.
+tagline-freally-sourcerer = Будущее приложение Freally.
+tagline-freally-file-manager = Кроссплатформенный файловый менеджер — скоро.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = Локальная кроссплатформенная студия стриминга и записи (уровня OBS): GPU-композитор сцен в реальном времени, многодорожечная запись и мультистрим на все платформы сразу — целиком на вашем компьютере. Без аккаунтов, без телеметрии, без облака.
+desc-freally-vault = Локальный менеджер паролей, passkey и секретов с нулевым разглашением и сквозным шифрованием. Совместим с KeePass, безопасное для памяти ядро на Rust, полностью бесплатно — ваше хранилище никогда не покидает ваш компьютер.
+desc-freally-player = Локальный кроссплатформенный медиаплеер, который воспроизводит практически всё с аппаратным ускорением — современный интерфейс, настоящая медиатека и стриминг, без рекламы и телеметрии.
+desc-freally-av = Локальный антивирус Freally для Windows, macOS и Linux. В разработке — пока недоступен для загрузки.
+desc-freally-studio = Полнофункциональная DAW с ИИ-генерацией паттернов в 35+ жанрах, микшером в стиле FL, таймлайном аранжировки и редактором аудиоклипов. Предварительная версия — пока недоступна для загрузки.
+desc-freally-sourcerer = Это приложение Freally в разработке. Пока недоступно для загрузки.
+desc-freally-file-manager = Это приложение Freally в разработке. Пока недоступно для загрузки.
+feat-freally-capture-1 = Собственный GPU-композитор сцен (wgpu) с фильтрами и переходами для каждого источника
+feat-freally-capture-2 = Многодорожечная запись (аппаратные кодировщики + собственный кодек без потерь)
+feat-freally-capture-3 = Мультистрим на Twitch/YouTube/Kick одновременно (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Виртуальная камера, буфер повторов, downstream-кееры и 3D-трансформации
+feat-freally-capture-5 = Интерфейс на 18 языках

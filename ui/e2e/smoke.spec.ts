@@ -32,7 +32,7 @@ test("first-run EULA gate blocks until accepted, then the grid renders", async (
 test("search and Type filter narrow the grid", async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("fc.eula.accepted", "2026-01");
+      localStorage.setItem("fc.eula.accepted", "2026-07-15");
     } catch {
       /* ignore */
     }
@@ -56,7 +56,7 @@ test("search and Type filter narrow the grid", async ({ page }) => {
 test("opening a card shows its detail view", async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("fc.eula.accepted", "2026-01");
+      localStorage.setItem("fc.eula.accepted", "2026-07-15");
     } catch {
       /* ignore */
     }

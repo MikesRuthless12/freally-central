@@ -67,3 +67,27 @@ updates-installed = Update installed.
 updates-restart-now = Restart now
 updates-restart-later = Later
 updates-try-again = Try again
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = Download
+tagline-freally-capture = Record and stream like a studio — one clean app.
+tagline-freally-vault = Your passwords, passkeys & secrets — encrypted, local-first, yours.
+tagline-freally-player = Plays anything. Beautifully. No ads, no spyware.
+tagline-freally-av = Freally Anti-Virus — coming soon.
+tagline-freally-studio = An AI-assisted music studio — coming soon.
+tagline-freally-sourcerer = An upcoming Freally app.
+tagline-freally-file-manager = A cross-platform file manager — coming soon.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = A local-first, cross-platform live-streaming & recording studio (OBS-class): a real-time GPU scene compositor, multi-track recording, and multistream to every platform at once — entirely on your machine. No accounts, no telemetry, no cloud.
+desc-freally-vault = A local-first, zero-knowledge, end-to-end-encrypted password, passkey & secrets manager. KeePass-compatible, memory-safe Rust core, completely free — your vault never leaves your machine.
+desc-freally-player = A local-first, cross-platform media player that plays virtually anything with hardware acceleration — a modern UI, a real media library, and streaming, with no ads and no telemetry.
+desc-freally-av = Freally's local-first anti-virus for Windows, macOS, and Linux. On the way — not yet available to download.
+desc-freally-studio = A full-featured DAW with AI pattern generation across 35+ genres, an FL-style mixer, arrangement timeline, and audio-clip editor. Pre-release — not yet available to download.
+desc-freally-sourcerer = This Freally-brand app is on the way. Not yet available to download.
+desc-freally-file-manager = This Freally-brand app is on the way. Not yet available to download.
+feat-freally-capture-1 = Owned wgpu GPU scene compositor with per-source filters & transitions
+feat-freally-capture-2 = Multi-track recording (hardware encoders + the owned lossless codec)
+feat-freally-capture-3 = Multistream to Twitch/YouTube/Kick at once (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Virtual camera, replay buffer, downstream keyers, 3D transforms
+feat-freally-capture-5 = 18-language UI

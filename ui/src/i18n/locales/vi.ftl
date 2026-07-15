@@ -67,3 +67,27 @@ updates-installed = Đã cài đặt bản cập nhật.
 updates-restart-now = Khởi động lại ngay
 updates-restart-later = Để sau
 updates-try-again = Thử lại
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = Tải xuống
+tagline-freally-capture = Ghi và phát trực tiếp như phòng thu — một ứng dụng gọn gàng.
+tagline-freally-vault = Mật khẩu, passkey & bí mật của bạn — mã hóa, local-first, của bạn.
+tagline-freally-player = Phát mọi thứ. Tuyệt đẹp. Không quảng cáo, không phần mềm gián điệp.
+tagline-freally-av = Freally Anti-Virus — sắp ra mắt.
+tagline-freally-studio = Phòng thu âm nhạc hỗ trợ AI — sắp ra mắt.
+tagline-freally-sourcerer = Một ứng dụng Freally sắp ra mắt.
+tagline-freally-file-manager = Trình quản lý tệp đa nền tảng — sắp ra mắt.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = Studio phát trực tiếp & ghi hình local-first, đa nền tảng (đẳng cấp OBS): bộ dựng cảnh GPU thời gian thực, ghi đa track, và phát đa nền tảng cùng lúc — hoàn toàn trên máy của bạn. Không tài khoản, không telemetry, không đám mây.
+desc-freally-vault = Trình quản lý mật khẩu, passkey & bí mật local-first, zero-knowledge, mã hóa đầu-cuối. Tương thích KeePass, lõi Rust an toàn bộ nhớ, hoàn toàn miễn phí — kho của bạn không bao giờ rời khỏi máy.
+desc-freally-player = Trình phát media local-first, đa nền tảng, phát được hầu như mọi thứ với tăng tốc phần cứng — giao diện hiện đại, thư viện media thực thụ, và phát trực tuyến, không quảng cáo và không telemetry.
+desc-freally-av = Phần mềm diệt virus local-first của Freally cho Windows, macOS và Linux. Đang chuẩn bị — chưa thể tải xuống.
+desc-freally-studio = Một DAW đầy đủ tính năng với tạo mẫu bằng AI trên hơn 35 thể loại, mixer kiểu FL, dòng thời gian sắp xếp, và trình chỉnh sửa clip âm thanh. Bản thử nghiệm — chưa thể tải xuống.
+desc-freally-sourcerer = Ứng dụng Freally này đang được chuẩn bị. Chưa thể tải xuống.
+desc-freally-file-manager = Ứng dụng Freally này đang được chuẩn bị. Chưa thể tải xuống.
+feat-freally-capture-1 = Bộ dựng cảnh GPU tự phát triển (wgpu) với bộ lọc & hiệu ứng chuyển cho từng nguồn
+feat-freally-capture-2 = Ghi đa track (bộ mã hóa phần cứng + codec lossless tự phát triển)
+feat-freally-capture-3 = Phát đồng thời lên Twitch/YouTube/Kick (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Camera ảo, bộ đệm phát lại, downstream keyer, và biến đổi 3D
+feat-freally-capture-5 = Giao diện 18 ngôn ngữ

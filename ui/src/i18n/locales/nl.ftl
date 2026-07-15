@@ -67,3 +67,27 @@ updates-installed = Update geïnstalleerd.
 updates-restart-now = Nu herstarten
 updates-restart-later = Later
 updates-try-again = Opnieuw proberen
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = Downloaden
+tagline-freally-capture = Opnemen en streamen als een studio — één nette app.
+tagline-freally-vault = Je wachtwoorden, passkeys & geheimen — versleuteld, local-first, van jou.
+tagline-freally-player = Speelt alles af. Prachtig. Geen advertenties, geen spyware.
+tagline-freally-av = Freally Anti-Virus — binnenkort.
+tagline-freally-studio = Een AI-ondersteunde muziekstudio — binnenkort.
+tagline-freally-sourcerer = Een aankomende Freally-app.
+tagline-freally-file-manager = Een platformonafhankelijke bestandsbeheerder — binnenkort.
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = Een local-first, platformonafhankelijke livestream- en opnamestudio (OBS-klasse): een realtime GPU-scènecompositor, meersporenopname en multistream naar elk platform tegelijk — volledig op je eigen machine. Geen accounts, geen telemetrie, geen cloud.
+desc-freally-vault = Een local-first, zero-knowledge, end-to-end-versleutelde wachtwoord-, passkey- en geheimenmanager. KeePass-compatibel, geheugenveilige Rust-kern, volledig gratis — je kluis verlaat nooit je machine.
+desc-freally-player = Een local-first, platformonafhankelijke mediaspeler die vrijwel alles afspeelt met hardwareversnelling — een moderne UI, een echte mediabibliotheek en streaming, zonder advertenties en zonder telemetrie.
+desc-freally-av = Freally's local-first antivirus voor Windows, macOS en Linux. Onderweg — nog niet beschikbaar om te downloaden.
+desc-freally-studio = Een volwaardige DAW met AI-patroongeneratie over 35+ genres, een mixer in FL-stijl, arrangement-tijdlijn en audioclip-editor. Voorpublicatie — nog niet beschikbaar om te downloaden.
+desc-freally-sourcerer = Deze Freally-app is onderweg. Nog niet beschikbaar om te downloaden.
+desc-freally-file-manager = Deze Freally-app is onderweg. Nog niet beschikbaar om te downloaden.
+feat-freally-capture-1 = Eigen wgpu-GPU-scènecompositor met filters & overgangen per bron
+feat-freally-capture-2 = Meersporenopname (hardware-encoders + de eigen lossless codec)
+feat-freally-capture-3 = Multistream naar Twitch/YouTube/Kick tegelijk (RTMP/SRT/WHIP)
+feat-freally-capture-4 = Virtuele camera, replaybuffer, downstream keyers en 3D-transformaties
+feat-freally-capture-5 = UI in 18 talen

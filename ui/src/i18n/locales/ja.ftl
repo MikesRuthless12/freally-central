@@ -67,3 +67,27 @@ updates-installed = アップデートをインストールしました。
 updates-restart-now = 今すぐ再起動
 updates-restart-later = 後で
 updates-try-again = 再試行
+
+# --- Per-app taglines (localized catalog copy) ---
+card-download = ダウンロード
+tagline-freally-capture = スタジオのように録画・配信 — ひとつのアプリで。
+tagline-freally-vault = パスワード・パスキー・機密情報 — 暗号化、ローカル優先、あなたのもの。
+tagline-freally-player = 何でも再生。美しく。広告なし、スパイウェアなし。
+tagline-freally-av = Freally Anti-Virus — 近日公開。
+tagline-freally-studio = AI支援の音楽スタジオ — 近日公開。
+tagline-freally-sourcerer = 近日登場の Freally アプリ。
+tagline-freally-file-manager = クロスプラットフォームのファイルマネージャー — 近日公開。
+
+# --- Per-app descriptions & features (localized catalog copy) ---
+desc-freally-capture = ローカル優先でクロスプラットフォームのライブ配信・録画スタジオ（OBSクラス）。リアルタイムGPUシーンコンポジター、マルチトラック録画、そして全プラットフォームへの同時マルチ配信 — すべてあなたのマシン上で。アカウント不要、テレメトリなし、クラウドなし。
+desc-freally-vault = ローカル優先・ゼロ知識・エンドツーエンド暗号化のパスワード／パスキー／機密情報マネージャー。KeePass互換、メモリ安全なRustコア、完全無料 — あなたの保管庫がマシンから出ることはありません。
+desc-freally-player = ローカル優先でクロスプラットフォームのメディアプレーヤー。ハードウェアアクセラレーションでほぼ何でも再生 — モダンなUI、本格的なメディアライブラリ、ストリーミング。広告なし、テレメトリなし。
+desc-freally-av = Windows・macOS・Linux 向けの Freally のローカル優先アンチウイルス。準備中 — まだダウンロードできません。
+desc-freally-studio = 35以上のジャンルに対応したAIパターン生成、FLスタイルのミキサー、アレンジメントタイムライン、オーディオクリップエディターを備えたフル機能のDAW。プレリリース — まだダウンロードできません。
+desc-freally-sourcerer = この Freally アプリは準備中です。まだダウンロードできません。
+desc-freally-file-manager = この Freally アプリは準備中です。まだダウンロードできません。
+feat-freally-capture-1 = ソースごとのフィルター＆トランジションを備えた自社製 wgpu GPU シーンコンポジター
+feat-freally-capture-2 = マルチトラック録画（ハードウェアエンコーダー＋自社製ロスレスコーデック）
+feat-freally-capture-3 = Twitch/YouTube/Kick への同時マルチ配信（RTMP/SRT/WHIP）
+feat-freally-capture-4 = 仮想カメラ、リプレイバッファー、ダウンストリームキーヤー、3D変換
+feat-freally-capture-5 = 18言語対応UI

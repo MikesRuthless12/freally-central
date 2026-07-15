@@ -219,7 +219,10 @@ button {
   transform: translateY(-2px);
 }
 .card-head {
-  min-height: 46px;
+  /* Fixed so every card's icon starts at the exact same spot, regardless of
+     whether the tagline is one or two lines. */
+  height: 64px;
+  overflow: hidden;
 }
 .card-name {
   margin: 0;
@@ -231,12 +234,17 @@ button {
   margin: 4px 0 0;
   font-size: 0.8rem;
   color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .card-art {
+  /* Fixed box so every icon is the exact same size and position. */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 0;
+  height: 172px;
 }
 .card-foot {
   margin-top: auto;

@@ -1,5 +1,5 @@
 import { useState, type UIEvent } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { exit } from "@tauri-apps/plugin-process";
 import eulaText from "../legal/eula.md?raw";
 import { useT } from "../i18n";
 
@@ -16,13 +16,10 @@ export function EulaGate({ onAccept }: { onAccept: () => void }) {
   };
 
   const decline = () => {
-    try {
-      void getCurrentWindow()
-        .close()
-        .catch(() => {});
-    } catch {
-      /* not running under Tauri (dev/test) */
-    }
+    // You must accept to use the app; declining quits it.
+    void exit(0).catch(() => {
+      /* not running under Tauri (dev/test) — no-op */
+    });
   };
 
   return (
