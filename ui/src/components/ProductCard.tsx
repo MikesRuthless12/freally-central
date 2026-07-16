@@ -2,19 +2,26 @@ import { useT } from "../i18n";
 import { appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
 import { liveRelease, type ReleaseState } from "../releases/types";
+import { statusFor } from "../install/status";
 import { AppIcon } from "./AppIcon";
+import { StatusBadge } from "./StatusBadge";
 
 interface ProductCardProps {
   app: CatalogApp;
   release?: ReleaseState;
+  /** Detected installed version: string, null (probed & absent), or undefined (not probed). */
+  installedVersion?: string | null;
   onOpen: (app: CatalogApp) => void;
 }
 
-export function ProductCard({ app, release, onOpen }: ProductCardProps) {
+export function ProductCard({ app, release, installedVersion, onOpen }: ProductCardProps) {
   const t = useT();
   const soon = app.status === "coming-soon";
   const tagline = appTagline(t, app);
   const live = liveRelease(release);
+  // A badge only when detection produced a reading for this app (undefined means
+  // not probed — coming-soon apps, or running outside the Tauri shell).
+  const status = statusFor(installedVersion, live?.version);
   return (
     <button
       type="button"
@@ -29,9 +36,12 @@ export function ProductCard({ app, release, onOpen }: ProductCardProps) {
         <AppIcon app={app} size={150} />
       </div>
       <div className="card-foot">
-        <span className={soon ? "pill pill--soon" : "pill pill--view"}>
-          {soon ? t("coming-soon") : t("card-download")}
-        </span>
+        <div className="card-foot-row">
+          <span className={soon ? "pill pill--soon" : "pill pill--view"}>
+            {soon ? t("coming-soon") : t("card-download")}
+          </span>
+          {status && <StatusBadge status={status} />}
+        </div>
         {live && (
           <p className="card-meta">
             <span className="card-version">v{live.version}</span>

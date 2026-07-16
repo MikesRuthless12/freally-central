@@ -112,3 +112,11 @@ feat-freally-capture-2 = Многодорожечная запись (аппар
 feat-freally-capture-3 = Мультистрим на Twitch/YouTube/Kick одновременно (RTMP/SRT/WHIP)
 feat-freally-capture-4 = Виртуальная камера, буфер повторов, downstream-кееры и 3D-трансформации
 feat-freally-capture-5 = Интерфейс на 18 языках
+
+# --- Install status & actions (Phase 3) ---
+status-installed = Установлено
+status-update = Доступно обновление
+status-not-installed = Не установлено
+action-install = Установить
+action-update = Обновить
+action-redownload = Скачать заново

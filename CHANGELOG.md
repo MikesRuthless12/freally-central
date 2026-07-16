@@ -3,6 +3,15 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## 0.3.0 — Phase 3: install detection & status badges
+
+- Installed-version detection per OS — Windows uninstall registry keys, macOS `/Applications/*.app` `Info.plist`, and Linux dpkg/rpm packages (with an AppImage-filename fallback) — mapped to each catalog app. Detection runs off the UI thread and is cached with a manual **Refresh**.
+- Status badges on every card and the detail view: **Installed ✓ / Update available / Not installed**, computed by a semver-aware comparison of the detected version to the latest release. Honest by construction — a version is shown only when an installer actually wrote it.
+- The detail view's primary action now reflects status — **Install / Update / Re-download** — routing to the verified download source. (Hands-off silent install and one-click **Open** arrive with Phase 4–5.)
+- The Windows **NSIS** installer now creates a **Desktop shortcut** on install (and removes it on uninstall); the MSI already did.
+- New **`npm run ci:local`** gate mirrors the GitHub 3-OS CI (`cargo fmt`/`clippy`/`test`/`deny`, UI `typecheck`/`lint`/`test`/`i18n:lint`, Playwright e2e) so red CI is caught before pushing.
+- All new UI strings localized across the 18 locales; i18n parity lint stays green.
+
 ## 0.2.0 — Phase 2: live release data & real download counts
 
 - Live GitHub release data per app: the latest version and release date, resolved from the GitHub Releases API against each app's per-OS asset patterns.

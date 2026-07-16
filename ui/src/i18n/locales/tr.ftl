@@ -106,3 +106,11 @@ feat-freally-capture-2 = Çok parçalı kayıt (donanım kodlayıcılar + kendi 
 feat-freally-capture-3 = Aynı anda Twitch/YouTube/Kick'e çoklu yayın (RTMP/SRT/WHIP)
 feat-freally-capture-4 = Sanal kamera, tekrar arabelleği, downstream keyer'lar ve 3D dönüşümler
 feat-freally-capture-5 = 18 dilli arayüz
+
+# --- Install status & actions (Phase 3) ---
+status-installed = Yüklü
+status-update = Güncelleme mevcut
+status-not-installed = Yüklü değil
+action-install = Yükle
+action-update = Güncelle
+action-redownload = Yeniden indir

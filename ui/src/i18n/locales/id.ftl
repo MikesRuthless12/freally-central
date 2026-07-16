@@ -106,3 +106,11 @@ feat-freally-capture-2 = Perekaman multi-track (encoder perangkat keras + codec 
 feat-freally-capture-3 = Multistream ke Twitch/YouTube/Kick sekaligus (RTMP/SRT/WHIP)
 feat-freally-capture-4 = Kamera virtual, buffer replay, downstream keyer, dan transformasi 3D
 feat-freally-capture-5 = Antarmuka 18 bahasa
+
+# --- Install status & actions (Phase 3) ---
+status-installed = Terpasang
+status-update = Pembaruan tersedia
+status-not-installed = Belum terpasang
+action-install = Pasang
+action-update = Perbarui
+action-redownload = Unduh ulang

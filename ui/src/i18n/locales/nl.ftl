@@ -110,3 +110,11 @@ feat-freally-capture-2 = Meersporenopname (hardware-encoders + de eigen lossless
 feat-freally-capture-3 = Multistream naar Twitch/YouTube/Kick tegelijk (RTMP/SRT/WHIP)
 feat-freally-capture-4 = Virtuele camera, replaybuffer, downstream keyers en 3D-transformaties
 feat-freally-capture-5 = UI in 18 talen
+
+# --- Install status & actions (Phase 3) ---
+status-installed = Geïnstalleerd
+status-update = Update beschikbaar
+status-not-installed = Niet geïnstalleerd
+action-install = Installeren
+action-update = Bijwerken
+action-redownload = Opnieuw downloaden

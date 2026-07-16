@@ -5,12 +5,12 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **Phase 2 complete** — on top of the Phase 0 pipeline and the Phase 1 shell + catalog
-> grid, each card now shows **live GitHub release data**: the latest version + date, per-OS and
-> total **real download counts** (with a brand-wide grand total), and an in-app **changelog /
-> What's New** viewer. Next up is Phase 3 (install detection + status badges). See
-> `Freally-Central-Feature-Roadmap.md` for the plan and `Build-Prompts-Guide.md` for the
-> phase-by-phase build prompts.
+> Status: **Phase 3 complete** — on top of the Phase 0–2 pipeline, shell, catalog grid, and live
+> release data, Central now **detects what's installed** on the machine (per-OS) and badges each
+> card **Installed ✓ / Update available / Not installed** (semver-aware), with the detail view's
+> primary action reflecting status (**Install / Update / Re-download**). Next up is Phase 4
+> (downloads + the live progress bar). See `Freally-Central-Feature-Roadmap.md` for the plan and
+> `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
 
 ## What it is
 
@@ -60,12 +60,15 @@ Freally Central/
 
 ## Development & release
 
-The Tauri v2 + React + Rust app is live (Phases 1–2). Run it locally with `npm install` at the
+The Tauri v2 + React + Rust app is live (Phases 1–3). Run it locally with `npm install` at the
 repo root, then `npm run tauri dev`.
 
 - **CI** — `.github/workflows/ci.yml` runs a 3-OS matrix (Windows, macOS, Linux): Rust
   `fmt`/`clippy`/`test` + `cargo deny`, and UI `typecheck`/`lint`/`test`/`i18n:lint` +
   Playwright `test:e2e`. Branch protection on `main` requires the **CI Success** gate.
+- **Local CI gate** — run **`npm run ci:local`** at the repo root before pushing. It mirrors the CI
+  above in one command (add `--no-e2e` for a faster inner loop, `--install` to (re)install deps
+  first) and exits non-zero on any failure, so red CI is caught locally. Required by the DoD.
 - **Pages** — `.github/workflows/pages.yml` publishes `docs/` and serves the catalog manifest:
   - Site — https://mikesruthless12.github.io/freally-central/
   - Manifest — https://mikesruthless12.github.io/freally-central/freally-central.json

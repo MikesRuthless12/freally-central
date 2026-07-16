@@ -21,8 +21,32 @@
     </header>
 
     <main>
-      <!-- In development — Phase 2 -->
+      <!-- Phase 3 -->
       <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">v0.3.0</span>
+            <span class="date">Phase 3 — install detection &amp; status badges</span>
+          </div>
+        </div>
+        <h2>0.3.0 — Phase 3</h2>
+        <p class="summary">
+          Central now knows what's on your machine. It detects the installed version of each app
+          per OS and badges every card <strong>Installed ✓ / Update available / Not installed</strong>,
+          computed by a semver-aware comparison to the latest release — honest by construction, a
+          version is shown only when an installer actually wrote it.
+        </p>
+        <ul class="features">
+          <li><strong>Installed-version detection</strong> — Windows uninstall registry keys, macOS <code>Info.plist</code>, and Linux dpkg/rpm packages (with an AppImage-filename fallback), mapped to each catalog app. Runs off the UI thread; cached with a manual Refresh.</li>
+          <li><strong>Status badges</strong> — Installed ✓ / Update available / Not installed on every card and the detail view.</li>
+          <li><strong>Status-aware action</strong> — the detail view's primary button reflects status (Install / Update / Re-download), routing to the verified download source.</li>
+          <li><strong>Desktop shortcut</strong> — the Windows installer now creates a Desktop icon on install.</li>
+          <li><strong>18-language UI</strong> — all new strings localized across the 18 locales; the CI parity lint stays green.</li>
+        </ul>
+      </article>
+
+      <!-- In development — Phase 2 -->
+      <article class="release">
         <div class="release-head">
           <div class="meta">
             <span class="badge">In development</span>

@@ -136,6 +136,9 @@ landing/download page carrying the same **real** per-OS GitHub download counter 
 ---
 
 ## Definition of Done — every prompt
+- **Local CI gate before push:** `npm run ci:local` is green — it mirrors the GitHub 3-OS CI in one
+  command (`cargo fmt --check`, `clippy -D warnings`, `cargo test`, `cargo deny`, UI
+  `typecheck`/`lint`/`test`/`i18n:lint`, Playwright `test:e2e`). Never push on a red local gate.
 - Builds green on Windows/macOS/Linux; `typecheck`/`lint`/`test`/`i18n:lint` pass.
 - Every user-facing string is localized (18 locales; parity lint green).
 - Numbers are real (GitHub download counts; live percent tracks real bytes) — nothing fabricated.

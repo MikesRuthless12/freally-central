@@ -110,3 +110,11 @@ feat-freally-capture-2 = Multi-track recording (hardware encoders + the owned lo
 feat-freally-capture-3 = Multistream to Twitch/YouTube/Kick at once (RTMP/SRT/WHIP)
 feat-freally-capture-4 = Virtual camera, replay buffer, downstream keyers, 3D transforms
 feat-freally-capture-5 = 18-language UI
+
+# --- Install status & actions (Phase 3) ---
+status-installed = Installed
+status-update = Update available
+status-not-installed = Not installed
+action-install = Install
+action-update = Update
+action-redownload = Re-download
