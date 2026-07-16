@@ -9,7 +9,7 @@ import type { CatalogApp } from "../catalog/types";
 import { liveRelease, type InstallerAsset, type ReleaseState } from "../releases/types";
 import { getEngine, getPlatform, type Platform } from "./engine";
 import { pickInstaller } from "./pickInstaller";
-import { isInstallReady } from "./progress";
+import { batchProgress, installProgress, isInstallActive, isInstallReady } from "./progress";
 import {
   DOWNLOAD_FAIL_CODES,
   INSTALL_FAIL_CODES,
@@ -34,6 +34,40 @@ export interface BatchState {
   entries: BatchEntry[];
   /** The apps whose verified downloads continued into the install stage. */
   installIds: string[];
+  /** The outcome counts, frozen at the moment the batch settled — the settled
+   *  summary must never be rewritten by later activity on a member app. */
+  summary?: BatchSummary;
+}
+
+export interface BatchSummary {
+  entriesTotal: number;
+  downloadsFailed: number;
+  /** Everything that neither finished nor failed when the batch settled —
+   *  including queued entries a Cancel all kept from ever starting. */
+  downloadsCanceled: number;
+  installTotal: number;
+  installed: number;
+  installsFailed: number;
+  installsCanceled: number;
+}
+
+/** The batch's outcome counts as they stand right now (frozen at settle). */
+function summarizeBatch(
+  entries: BatchEntry[],
+  installIds: string[],
+  states: ReadonlyMap<string, AppDownloadState>,
+): BatchSummary {
+  const downloads = batchProgress(entries, states);
+  const installs = installProgress(installIds, states);
+  return {
+    entriesTotal: entries.length,
+    downloadsFailed: downloads.failed,
+    downloadsCanceled: entries.length - downloads.done - downloads.failed,
+    installTotal: installIds.length,
+    installed: installs.installed,
+    installsFailed: installs.failed,
+    installsCanceled: installs.canceled,
+  };
 }
 
 export interface DownloadsApi {
@@ -175,6 +209,14 @@ export function useDownloads(): DownloadsApi {
   // instead of skipping past it and finishing the batch early.
   const runningRef = useRef<Map<string, Promise<AppDownloadState | undefined>>>(new Map());
   const batchCanceledRef = useRef(false);
+  // The authoritative current state map: async flows (chaining installs after
+  // downloads, filtering a queue at its turn) must read state NOW, not the
+  // snapshot their closure rendered with.
+  const byIdRef = useRef<ReadonlyMap<string, AppDownloadState>>(new Map());
+  // Install runs are serialized through this promise chain: the backend holds
+  // ONE batch slot, so a second concurrent run would fail every app with
+  // "busy" instead of waiting its turn.
+  const installQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     let alive = true;
@@ -186,14 +228,14 @@ export function useDownloads(): DownloadsApi {
     };
   }, []);
 
-  /** Apply a mutation to the state map (the single setById call site). */
+  /** Apply a mutation to the state map — the single write path. The ref is the
+   *  source of truth; React state mirrors it for rendering. */
   const applyById = useCallback(
     (mutate: (next: Map<string, AppDownloadState>) => void) => {
-      setById((prev) => {
-        const next = new Map(prev);
-        mutate(next);
-        return next;
-      });
+      const next = new Map(byIdRef.current);
+      mutate(next);
+      byIdRef.current = next;
+      setById(next);
     },
     [],
   );
@@ -264,11 +306,16 @@ export function useDownloads(): DownloadsApi {
     [engine],
   );
 
-  /** Run one install batch to settlement. Never throws. The engine enforces
-   *  the trust gate; this only tracks the per-app events it streams back. */
-  const runInstalls = useCallback(
-    async (ids: string[]): Promise<void> => {
-      if (!engine || ids.length === 0) return;
+  /** One install run to settlement. Never throws. The engine enforces the
+   *  trust gate; this only tracks the per-app events it streams back. */
+  const doInstallRun = useCallback(
+    async (requested: string[]): Promise<void> => {
+      if (!engine) return;
+      // Filter at this run's actual turn (a preceding queued run may already
+      // have installed some of these ids) to the states an install can start
+      // from — a verified download, or a failed/canceled earlier attempt.
+      const ids = requested.filter((id) => isInstallReady(byIdRef.current.get(id)));
+      if (ids.length === 0) return;
       // Queue everyone visibly (a 0% install bar) before the engine starts,
       // carrying the finished download each install phase keeps offering.
       applyById((next) => {
@@ -315,6 +362,17 @@ export function useDownloads(): DownloadsApi {
     [engine, applyById],
   );
 
+  /** Enqueue an install run behind any run already going (solo or batch) —
+   *  serialized, so the backend's single batch slot never answers "busy". */
+  const runInstalls = useCallback(
+    (ids: string[]): Promise<void> => {
+      const run = installQueueRef.current.then(() => doInstallRun(ids));
+      installQueueRef.current = run.catch(() => {});
+      return run;
+    },
+    [doInstallRun],
+  );
+
   const install = useCallback(
     (appId: string) => {
       void runInstalls([appId]);
@@ -334,8 +392,15 @@ export function useDownloads(): DownloadsApi {
   );
 
   const startAll = useCallback(
-    (entries: BatchEntry[]) => {
-      if (!engine || entries.length === 0) return;
+    (allEntries: BatchEntry[]) => {
+      if (!engine) return;
+      // An app that is mid-install right now (a solo Install click) belongs to
+      // that flow — re-downloading the file its installer is executing would
+      // race two writers on its state and can fail the rename on Windows.
+      const entries = allEntries.filter(
+        (entry) => !isInstallActive(byIdRef.current.get(entry.appId)),
+      );
+      if (entries.length === 0) return;
       batchCanceledRef.current = false;
       // Clear stale terminal states from earlier downloads so queued entries
       // read as "not started" — otherwise the aggregate bar counts them as
@@ -369,7 +434,13 @@ export function useDownloads(): DownloadsApi {
           setBatch((b) => ({ ...b, status: "installing", installIds }));
           await runInstalls(installIds);
         }
-        setBatch((b) => ({ ...b, status: "settled" }));
+        // Freeze the outcome counts: the settled summary reports THIS batch,
+        // immune to whatever later runs do to member apps' live state.
+        setBatch((b) => ({
+          ...b,
+          status: "settled",
+          summary: summarizeBatch(b.entries, installIds, byIdRef.current),
+        }));
       });
     },
     [engine, runOne, runInstalls, applyById],

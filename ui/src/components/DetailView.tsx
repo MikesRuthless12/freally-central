@@ -235,23 +235,9 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
             </>
           )}
           {download.phase === "done" && (
-            <>
-              <p className="detail-download-note detail-download-note--ok">
-                {t(download.checksumVerified ? "dl-done-verified" : "dl-done-size-only")}
-              </p>
-              {/* The verified installer is real and reachable — show which file
-                  and open its folder (Install runs it hands-off from there). */}
-              <span className="detail-download-file">
-                {download.path.split(/[\\/]/).pop()}
-              </span>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => void revealInFolder(download.path)}
-              >
-                {t("dl-show-in-folder")}
-              </button>
-            </>
+            <p className="detail-download-note detail-download-note--ok">
+              {t(download.checksumVerified ? "dl-done-verified" : "dl-done-size-only")}
+            </p>
           )}
           {download.phase === "installed" && (
             <p className="detail-download-note detail-download-note--ok">{t("install-done")}</p>
@@ -264,6 +250,25 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
           {download.phase === "installCanceled" && (
             <p className="detail-download-note">{t("install-canceled")}</p>
           )}
+          {/* The verified installer is still on disk after a failed or canceled
+              install — keep it reachable so the user can always run it by hand. */}
+          {(download.phase === "done" ||
+            download.phase === "installFailed" ||
+            download.phase === "installCanceled") &&
+            download.path && (
+              <>
+                <span className="detail-download-file">
+                  {download.path.split(/[\\/]/).pop()}
+                </span>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => void revealInFolder(download.path)}
+                >
+                  {t("dl-show-in-folder")}
+                </button>
+              </>
+            )}
           {download.phase === "failed" && (
             <p className="detail-download-note detail-download-note--error">
               {t(failureMessageKey(download.code))}

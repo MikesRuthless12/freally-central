@@ -1,6 +1,6 @@
 import { useT } from "../i18n";
 import type { BatchEntry } from "../downloads/types";
-import type { DownloadsApi } from "../downloads/useDownloads";
+import type { BatchSummary, DownloadsApi } from "../downloads/useDownloads";
 import { batchProgress, installProgress } from "../downloads/progress";
 import { ProgressBar } from "./ProgressBar";
 
@@ -29,31 +29,34 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
       ? t("install-all-none")
       : t("install-all-hint");
 
-  // The aggregate bars reflect the batch that was actually queued; the
+  // The live aggregate bars reflect the batch that was actually queued; the
   // lifecycle comes from the store, not re-derived from per-entry states.
   const progress = batchProgress(batch.entries, downloads.byId);
   const installs = installProgress(batch.installIds, downloads.byId);
-  // "Cancel all" can settle a batch with queued entries that never started —
-  // count everything that didn't finish or fail as canceled, honestly.
-  const canceledCount = batch.entries.length - progress.done - progress.failed;
 
-  // The one honest settled line, most specific problem first: a failed install
-  // outranks a failed download outranks a cancel outranks success.
-  const settledLabel =
-    installs.failed > 0
-      ? t("batch-install-failed", { failed: installs.failed, total: batch.installIds.length })
-      : progress.failed > 0
-        ? t("batch-failed", { failed: progress.failed, total: batch.entries.length })
-        : installs.canceled > 0
-          ? t("batch-install-canceled", {
-              canceled: installs.canceled,
-              total: batch.installIds.length,
-            })
-          : canceledCount > 0
-            ? t("batch-canceled", { canceled: canceledCount, total: batch.entries.length })
-            : batch.installIds.length > 0
-              ? t("batch-installed")
-              : t("batch-done");
+  // The settled line reports EVERY problem the batch had — a failed install
+  // must never hide a download that was never fetched, and vice versa. It
+  // reads from the summary frozen at settle time, so later activity on a
+  // member app can't rewrite what this batch's outcome was.
+  const settledLabel = (s: BatchSummary): string => {
+    const parts: string[] = [];
+    if (s.downloadsFailed > 0) {
+      parts.push(t("batch-failed", { failed: s.downloadsFailed, total: s.entriesTotal }));
+    }
+    if (s.installsFailed > 0) {
+      parts.push(t("batch-install-failed", { failed: s.installsFailed, total: s.installTotal }));
+    }
+    if (s.downloadsCanceled > 0) {
+      parts.push(t("batch-canceled", { canceled: s.downloadsCanceled, total: s.entriesTotal }));
+    }
+    if (s.installsCanceled > 0) {
+      parts.push(
+        t("batch-install-canceled", { canceled: s.installsCanceled, total: s.installTotal }),
+      );
+    }
+    if (parts.length > 0) return parts.join(" ");
+    return s.installTotal > 0 ? t("batch-installed") : t("batch-done");
+  };
 
   return (
     <div className="toolbar">
@@ -119,7 +122,9 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
               </button>
             </>
           )}
-          {batch.status === "settled" && <span className="batch-label">{settledLabel}</span>}
+          {batch.status === "settled" && batch.summary && (
+            <span className="batch-label">{settledLabel(batch.summary)}</span>
+          )}
         </div>
       )}
     </div>

@@ -559,7 +559,9 @@ async fn open_part_file(part_path: &Path, resuming: bool) -> std::io::Result<tok
 
 /// Accept only the GitHub release-asset URL shape:
 /// https://github.com/<owner>/<repo>/releases/download/<tag>/<file>
-fn validate_asset_url(raw: &str) -> Result<reqwest::Url, String> {
+/// Shared with the install engine's trust gate (Phase 5), which re-validates
+/// the recorded source URL with the same rules before anything executes.
+pub(crate) fn validate_asset_url(raw: &str) -> Result<reqwest::Url, String> {
     let url = reqwest::Url::parse(raw).map_err(|e| format!("invalid url: {e}"))?;
     if url.scheme() != "https" {
         return Err(format!("scheme {} is not https", url.scheme()));

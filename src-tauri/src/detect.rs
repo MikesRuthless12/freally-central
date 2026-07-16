@@ -244,19 +244,19 @@ fn detect_appimage_version(query: &DetectQuery) -> Option<String> {
 }
 
 /// The directories an installed AppImage may live in — shared by detection and
-/// by the install engine (Phase 5), which places AppImages in the first entry
-/// under $HOME (~/Applications) so what it installs is what detection finds.
+/// by the install engine (Phase 5), which places AppImages in ~/Applications.
+/// The order is the Phase 3 one: a system-wide /opt install outranks per-user
+/// copies (and a stray leftover in ~/Downloads outranks nothing but itself).
 #[cfg(target_os = "linux")]
 pub(crate) fn appimage_search_dirs() -> Vec<std::path::PathBuf> {
     use std::path::PathBuf;
-    let mut dirs: Vec<PathBuf> = Vec::new();
+    let mut dirs: Vec<PathBuf> = vec![PathBuf::from("/opt")];
     if let Some(home) = std::env::var_os("HOME") {
         let home = PathBuf::from(home);
         dirs.push(home.join("Applications"));
         dirs.push(home.join(".local/bin"));
         dirs.push(home.join("Downloads"));
     }
-    dirs.push(PathBuf::from("/opt"));
     dirs
 }
 

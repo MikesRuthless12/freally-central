@@ -232,12 +232,12 @@ fn needs_group_elevation(kind: InstallerKind) -> bool {
 }
 
 /// The `<owner>` segment of a github.com release-asset URL, lowercased.
-/// (GitHub logins are case-insensitive.)
+/// (GitHub logins are case-insensitive.) Re-validates the full asset shape
+/// with the download engine's own validator — the gate must not trust a
+/// github.com URL on owner alone, even though the registry only ever records
+/// already-validated URLs.
 fn owner_of_asset_url(url: &str) -> Option<String> {
-    let url = reqwest::Url::parse(url).ok()?;
-    if url.scheme() != "https" || url.host_str() != Some("github.com") {
-        return None;
-    }
+    let url = crate::download::validate_asset_url(url).ok()?;
     let mut segments = url.path_segments()?.filter(|s| !s.is_empty());
     segments.next().map(|owner| owner.to_ascii_lowercase())
 }
@@ -587,31 +587,45 @@ async fn copy_app_from_mount(
             continue;
         }
         let dest = dest_dir.join(&app_name);
-        // Replace, never merge: ditto into an existing bundle would mix files
-        // from two versions. If the old copy can't be removed, try elsewhere.
-        let _ = tokio::fs::remove_dir_all(&dest).await;
-        if tokio::fs::metadata(&dest).await.is_ok() {
-            continue;
-        }
+        // Stage the copy beside the destination first: the user's working
+        // install is only replaced once the whole new bundle has arrived — a
+        // failed copy must never cost them the app they already had.
+        let staging = dest_dir.join(format!(
+            ".freally-central-staging-{}",
+            app_name.to_string_lossy()
+        ));
+        let _ = tokio::fs::remove_dir_all(&staging).await;
         let mut command = tokio::process::Command::new("ditto");
-        command.arg(&app_src).arg(&dest);
+        command.arg(&app_src).arg(&staging);
         let status = wait_with_ramp(&mut command, std::slice::from_ref(&plan.id), 0.40, on_event)
             .await
             .map_err(|e| (fail::IO, e.to_string()))?;
-        if status.success() {
-            // The dmg carries the browser-download quarantine flag; Central has
-            // already verified authenticity (trusted owner + exact digest, both
-            // re-checked above), so clear it from the installed copy — otherwise
-            // the hands-off install of the brand's unsigned macOS builds ends in
-            // a Gatekeeper block instead of a working app.
-            let _ = tokio::process::Command::new("xattr")
-                .args(["-dr", "com.apple.quarantine"])
-                .arg(&dest)
-                .status()
-                .await;
+        if !status.success() {
+            let _ = tokio::fs::remove_dir_all(&staging).await;
+            continue;
+        }
+        // The dmg carries the browser-download quarantine flag; Central has
+        // already verified authenticity (trusted owner + exact digest, both
+        // re-checked above), so clear it from the staged copy — otherwise the
+        // hands-off install of the brand's unsigned macOS builds ends in a
+        // Gatekeeper block instead of a working app.
+        let _ = tokio::process::Command::new("xattr")
+            .args(["-dr", "com.apple.quarantine"])
+            .arg(&staging)
+            .status()
+            .await;
+        // Swap: replace (never merge — ditto into an existing bundle would mix
+        // two versions) only now that the staged bundle is complete. If the old
+        // copy can't be removed here, leave it and try the next location.
+        let _ = tokio::fs::remove_dir_all(&dest).await;
+        if tokio::fs::metadata(&dest).await.is_ok() {
+            let _ = tokio::fs::remove_dir_all(&staging).await;
+            continue;
+        }
+        if tokio::fs::rename(&staging, &dest).await.is_ok() {
             return Ok(());
         }
-        let _ = tokio::fs::remove_dir_all(&dest).await;
+        let _ = tokio::fs::remove_dir_all(&staging).await;
     }
     Err((
         fail::INSTALLER_FAILED,
@@ -634,8 +648,8 @@ async fn run_installer(plan: &Plan, on_event: &Channel<InstallEvent>) -> Result<
 }
 
 /// AppImage "install": make it executable and place it in ~/Applications —
-/// the first directory installed-app detection searches, so what this writes
-/// is exactly what detection reads back.
+/// one of the directories installed-app detection searches, so what this
+/// writes is what detection reads back.
 #[cfg(target_os = "linux")]
 async fn install_appimage(plan: &Plan, on_event: &Channel<InstallEvent>) -> Result<(), Fail> {
     use std::os::unix::fs::PermissionsExt;
@@ -648,8 +662,28 @@ async fn install_appimage(plan: &Plan, on_event: &Channel<InstallEvent>) -> Resu
         .map_err(|e| (fail::IO, e.to_string()))?;
     progress(on_event, &plan.id, 0.50);
 
-    // Remove older copies of this app (same filename prefix before the version
-    // token) so detection can't read a stale version afterwards.
+    // Stage beside the destination, then swap into place: any existing install
+    // is only touched once the new file has fully arrived — a failed copy must
+    // never cost the user the version they already had. (The .staging suffix
+    // keeps the temp file invisible to detection, which only reads *.AppImage.)
+    let dest = dir.join(&plan.file.file_name);
+    let staging = dir.join(format!("{}.fc-staging", plan.file.file_name));
+    let stage = async {
+        tokio::fs::copy(&plan.file.path, &staging).await?;
+        let mut perms = tokio::fs::metadata(&staging).await?.permissions();
+        perms.set_mode(0o755);
+        tokio::fs::set_permissions(&staging, perms).await?;
+        tokio::fs::rename(&staging, &dest).await
+    };
+    if let Err(e) = stage.await {
+        let _ = tokio::fs::remove_file(&staging).await;
+        return Err((fail::IO, e.to_string()));
+    }
+    progress(on_event, &plan.id, 0.85);
+
+    // Only now drop OLDER copies of this app (same filename prefix before the
+    // version token, never the file just placed) so detection can't read a
+    // stale version afterwards.
     let prefix = appimage_prefix(&plan.file.file_name);
     if let Ok(mut entries) = tokio::fs::read_dir(&dir).await {
         while let Ok(Some(entry)) = entries.next_entry().await {
@@ -663,20 +697,6 @@ async fn install_appimage(plan: &Plan, on_event: &Channel<InstallEvent>) -> Resu
             }
         }
     }
-
-    let dest = dir.join(&plan.file.file_name);
-    tokio::fs::copy(&plan.file.path, &dest)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
-    progress(on_event, &plan.id, 0.85);
-    let mut perms = tokio::fs::metadata(&dest)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?
-        .permissions();
-    perms.set_mode(0o755);
-    tokio::fs::set_permissions(&dest, perms)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
     Ok(())
 }
 
@@ -948,12 +968,15 @@ fn launch(_id: &str, name: &str) -> Result<(), String> {
                     }
                 }
                 if let Ok(icon) = app.get_value::<String, _>("DisplayIcon") {
-                    // DisplayIcon may carry a ",<index>" suffix and quotes.
+                    // DisplayIcon may carry a ",<index>" suffix (the resource
+                    // index can be negative, e.g. ",-1") and quotes.
                     let cleaned = icon.trim().trim_matches('"');
                     let cleaned = match cleaned.rsplit_once(',') {
                         Some((head, index))
-                            if !index.trim().is_empty()
-                                && index.trim().chars().all(|c| c.is_ascii_digit()) =>
+                            if {
+                                let digits = index.trim().strip_prefix('-').unwrap_or(index.trim());
+                                !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit())
+                            } =>
                         {
                             head
                         }
@@ -1086,6 +1109,13 @@ mod tests {
         ));
         assert!(!trusted_owner("not a url"));
         assert!(!trusted_owner("https://github.com/"));
+        // A trusted owner is not enough — the URL must be the full
+        // release-asset shape (the gate re-validates, it doesn't trust the
+        // registry to have done so).
+        assert!(!trusted_owner("https://github.com/MikesRuthless12/repo"));
+        assert!(!trusted_owner(
+            "https://github.com/MikesRuthless12/repo/archive/main.zip"
+        ));
     }
 
     #[test]
