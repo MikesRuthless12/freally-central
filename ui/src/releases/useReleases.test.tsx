@@ -20,7 +20,7 @@ function app(id: string, repo?: string, status: CatalogApp["status"] = "availabl
 function available(total: number): ReleaseState {
   return {
     status: "available",
-    release: { tag: "v1", version: "1", publishedAt: "", htmlUrl: "", notes: null, totalDownloads: total, perOs: {} },
+    release: { tag: "v1", version: "1", publishedAt: "", htmlUrl: "", notes: null, totalDownloads: total, perOs: {}, installers: {} },
   };
 }
 

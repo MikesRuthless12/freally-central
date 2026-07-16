@@ -9,6 +9,20 @@ import type { AppAssets } from "../catalog/types";
 // AppAssets rather than restating the literals (a new platform tracks automatically).
 export type OsKey = keyof AppAssets;
 
+// The one canonical value-level list of those keys — every iteration site
+// imports this so a new platform is added in exactly one place.
+export const OS_KEYS: readonly OsKey[] = ["windows", "macos", "linux"];
+
+// One downloadable installer asset from the release, as published by the
+// GitHub API — the download engine (Phase 4) verifies against `size` and
+// `digest`, so both are kept exactly as the API stated them.
+export interface InstallerAsset {
+  name: string; // asset file name, e.g. "Freally-Capture_1.4.0_x64-setup.exe"
+  url: string; // browser_download_url
+  size: number; // exact byte size per the API
+  digest: string | null; // "sha256:<hex>" when GitHub published one
+}
+
 export interface ReleaseInfo {
   tag: string; // raw tag, e.g. "v1.2.3"
   version: string; // display version with the leading "v" stripped, e.g. "1.2.3"
@@ -19,6 +33,9 @@ export interface ReleaseInfo {
   // that matches the OS pattern — e.g. Linux .AppImage + .deb + .rpm). A key is
   // present only when the release ships at least one installer for that OS.
   perOs: Partial<Record<OsKey, number>>;
+  // The matched installer assets themselves, per OS — what the Phase 4 download
+  // engine streams and verifies. Same present-only convention as `perOs`.
+  installers: Partial<Record<OsKey, InstallerAsset[]>>;
   // The app's real installer total = the sum of the per-OS installer downloads.
   // Non-installer assets (the updater's latest.json, .sig signatures, blockmaps)
   // are deliberately excluded so the figure reflects actual installs, and so the

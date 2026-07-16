@@ -5,6 +5,8 @@ import { useI18n } from "../i18n";
 import { formatCount } from "../releases/format";
 import { useReleases } from "../releases/useReleases";
 import { useInstalled } from "../install/useInstalled";
+import { useDownloads } from "../downloads/useDownloads";
+import type { BatchEntry } from "../downloads/types";
 import { useTheme } from "../theme";
 import { SettingsDialog } from "../panels/Settings";
 import { CardGrid } from "./CardGrid";
@@ -16,21 +18,12 @@ function matchesFilter(app: CatalogApp, filter: Filter): boolean {
   return filter === "all" ? true : app.status === filter;
 }
 
-function matchesQuery(app: CatalogApp, query: string): boolean {
-  if (!query) return true;
-  const needle = query.toLowerCase();
-  return (
-    app.name.toLowerCase().includes(needle) ||
-    app.tagline.toLowerCase().includes(needle) ||
-    app.description.toLowerCase().includes(needle)
-  );
-}
-
 export function Hub() {
   const { t, locale } = useI18n();
   const { apps, source, loaded } = useCatalog();
   const releases = useReleases(apps);
   const installed = useInstalled(apps);
+  const downloads = useDownloads();
   const { theme, toggle } = useTheme();
 
   // One manual Refresh re-checks both the live release data and what's installed.
@@ -38,26 +31,30 @@ export function Hub() {
     releases.refresh();
     installed.refresh();
   }, [releases, installed]);
-  const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const selected = apps.find((a) => a.id === selectedId) ?? null;
-  const visible = useMemo(
-    () => apps.filter((a) => matchesFilter(a, filter) && matchesQuery(a, query)),
-    [apps, filter, query],
-  );
+  const visible = useMemo(() => apps.filter((a) => matchesFilter(a, filter)), [apps, filter]);
+
+  // Everything Download All would fetch: each available app whose release
+  // ships an installer for this machine (FC-32). Depends on installerFor (a
+  // stable callback that changes only with the platform), NOT the whole
+  // downloads object — which changes identity on every progress event.
+  const { installerFor } = downloads;
+  const downloadAllEntries = useMemo<BatchEntry[]>(() => {
+    const entries: BatchEntry[] = [];
+    for (const app of apps) {
+      const asset = installerFor(app, releases.byId.get(app.id));
+      if (asset) entries.push({ appId: app.id, asset });
+    }
+    return entries;
+  }, [apps, releases.byId, installerFor]);
 
   return (
     <div className="app">
-      <TopBar
-        query={query}
-        onQuery={setQuery}
-        theme={theme}
-        onToggleTheme={toggle}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
+      <TopBar theme={theme} onToggleTheme={toggle} onOpenSettings={() => setSettingsOpen(true)} />
 
       <main className="main">
         {selected ? (
@@ -65,11 +62,17 @@ export function Hub() {
             app={selected}
             release={releases.byId.get(selected.id)}
             installedVersion={installed.byId.get(selected.id)}
+            downloads={downloads}
             onBack={() => setSelectedId(null)}
           />
         ) : (
           <>
-            <Toolbar filter={filter} onFilter={setFilter} />
+            <Toolbar
+              filter={filter}
+              onFilter={setFilter}
+              downloads={downloads}
+              entries={downloadAllEntries}
+            />
             {loaded && source === "bundled" && (
               <p className="offline-note">{t("status-offline")}</p>
             )}
@@ -92,6 +95,7 @@ export function Hub() {
               apps={visible}
               releases={releases.byId}
               installed={installed.byId}
+              downloads={downloads.byId}
               onOpen={(a) => setSelectedId(a.id)}
             />
           </>

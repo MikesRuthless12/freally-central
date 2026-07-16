@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { acceptEula } from "./helpers";
 
 // Phase 2 flows: live release data & real download counts, driven headless with
 // the GitHub Releases API mocked so the counts are deterministic.
@@ -28,20 +29,6 @@ const RELEASE = {
   ],
 };
 // 1234 + 567 + 89 = 1890 total downloads.
-
-async function acceptEula(page: Page) {
-  await page.addInitScript(() => {
-    try {
-      localStorage.setItem("fc.eula.accepted", "2026-07-15");
-      // Start from a clean release cache so the mocked API is always consulted.
-      for (const k of Object.keys(localStorage)) {
-        if (k.startsWith("fc.release.")) localStorage.removeItem(k);
-      }
-    } catch {
-      /* ignore */
-    }
-  });
-}
 
 test("live version, real download counts, and the changelog render", async ({ page }) => {
   await acceptEula(page);

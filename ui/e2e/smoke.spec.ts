@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { acceptEula } from "./helpers";
 
 // Phase 1 user flows, driven headless against the web build.
 
@@ -29,38 +30,20 @@ test("first-run EULA gate blocks until accepted, then the grid renders", async (
   await expect(page.getByRole("heading", { name: "Freally Capture" })).toBeVisible();
 });
 
-test("search and Type filter narrow the grid", async ({ page }) => {
-  await page.addInitScript(() => {
-    try {
-      localStorage.setItem("fc.eula.accepted", "2026-07-15");
-    } catch {
-      /* ignore */
-    }
-  });
+test("the Type filter narrows the grid", async ({ page }) => {
+  await acceptEula(page);
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Freally Capture" })).toBeVisible();
 
-  // Search
-  await page.getByRole("searchbox").fill("vault");
-  await expect(page.getByRole("heading", { name: "Freally Vault" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Freally Capture" })).toHaveCount(0);
-
-  // Clear + filter to available only (Capture is available; Vault is coming-soon)
-  await page.getByRole("searchbox").fill("");
+  // Filter to available only (Capture is available; Vault is coming-soon).
   await page.getByRole("combobox").selectOption("available");
   await expect(page.getByRole("heading", { name: "Freally Capture" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Freally Vault" })).toHaveCount(0);
 });
 
 test("opening a card shows its detail view", async ({ page }) => {
-  await page.addInitScript(() => {
-    try {
-      localStorage.setItem("fc.eula.accepted", "2026-07-15");
-    } catch {
-      /* ignore */
-    }
-  });
+  await acceptEula(page);
   await page.goto("/");
 
   await page.getByRole("button", { name: /Freally Capture/ }).click();

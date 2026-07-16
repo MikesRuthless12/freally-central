@@ -21,8 +21,34 @@
     </header>
 
     <main>
-      <!-- Phase 3 -->
+      <!-- Phase 4 -->
       <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">v0.4.0</span>
+            <span class="date">Phase 4 — downloads, the live progress bar &amp; Download All</span>
+          </div>
+        </div>
+        <h2>0.4.0 — Phase 4</h2>
+        <p class="summary">
+          Central now downloads installers itself. A native engine streams the right installer for
+          your OS with a <strong>precise two-decimal percent</strong> (e.g. <code>38.92%</code>)
+          computed from real bytes — landing on exactly <strong>100.00%</strong> — and every file is
+          <strong>verified (size + SHA-256)</strong> before it is kept. One click downloads the whole
+          family.
+        </p>
+        <ul class="features">
+          <li><strong>Download engine</strong> — streams each app's per-OS installer from its GitHub release to a temp folder; interrupted downloads resume where they left off; only <code>github.com/…/releases/download/…</code> URLs are ever fetched.</li>
+          <li><strong>Verification before use</strong> — the byte count must match the published size exactly and the SHA-256 digest must match when published; a short or corrupted download is refused and discarded.</li>
+          <li><strong>Live progress bar</strong> — on the card and the detail view, bound 0 → 100% to real bytes, with Cancel and a resuming Retry.</li>
+          <li><strong>Download All</strong> — queues every available app with bounded concurrency, an aggregate bar plus per-app bars, Cancel all, and per-app failure isolation with an honest summary.</li>
+          <li><strong>Simpler top bar</strong> — the search box was removed (seven apps don't need one); the Type filter stays.</li>
+          <li><strong>18-language UI</strong> — all new strings localized across the 18 locales; the CI parity lint stays green.</li>
+        </ul>
+      </article>
+
+      <!-- Phase 3 -->
+      <article class="release">
         <div class="release-head">
           <div class="meta">
             <span class="badge">v0.3.0</span>
