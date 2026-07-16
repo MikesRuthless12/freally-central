@@ -13,9 +13,16 @@ export function fraction(received: number, total: number): number {
 }
 
 /** True while bytes are moving or verification runs — the phases that render a
- *  live bar. The one definition every surface shares. */
+ *  live DOWNLOAD bar (and where the download Cancel applies). */
 export function isActive(state: AppDownloadState | undefined): boolean {
   return state?.phase === "downloading" || state?.phase === "verifying";
+}
+
+/** True while the app is queued for or running its silent install (FC-41) —
+ *  the phases that render a live INSTALL bar. Distinct from isActive because
+ *  the download Cancel affordance must not apply here. */
+export function isInstallActive(state: AppDownloadState | undefined): boolean {
+  return state?.phase === "waitingInstall" || state?.phase === "installing";
 }
 
 /** True when Cancel is meaningful: an active transfer, or an orphaned backend
@@ -25,14 +32,29 @@ export function isCancelable(state: AppDownloadState | undefined): boolean {
   return isActive(state) || (state?.phase === "failed" && state.code === "alreadyDownloading");
 }
 
-/** The fraction for one app's download state (done = 1, not started/failed = 0). */
+/** True when a verified download is on disk and a silent install can (re)start
+ *  from it: the download finished, or a previous install failed/was canceled. */
+export function isInstallReady(state: AppDownloadState | undefined): boolean {
+  return (
+    state?.phase === "done" ||
+    state?.phase === "installFailed" ||
+    state?.phase === "installCanceled"
+  );
+}
+
+/** The fraction for one app's live bar: real bytes while downloading, the
+ *  staged install estimate while installing (a fresh 0→1 for the install
+ *  stage — the label says which stage the bar is showing). */
 export function stateFraction(state: AppDownloadState | undefined): number {
   switch (state?.phase) {
     case "downloading":
     case "verifying":
       return fraction(state.received, state.total);
     case "done":
+    case "installed":
       return 1;
+    case "installing":
+      return Math.min(Math.max(state.fraction, 0), 1);
     default:
       return 0;
   }
@@ -71,7 +93,15 @@ export function batchProgress(
   for (const entry of entries) {
     const state = states.get(entry.appId);
     switch (state?.phase) {
+      // Every install phase means this DOWNLOAD completed in full — the bytes
+      // stay counted so the aggregate never moves backward when an entry
+      // continues from "done" into its silent install (Phase 5).
       case "done":
+      case "waitingInstall":
+      case "installing":
+      case "installed":
+      case "installFailed":
+      case "installCanceled":
         done += 1;
         terminal += 1;
         receivedSum += entry.asset.size;
@@ -104,5 +134,69 @@ export function batchProgress(
     failed,
     canceled,
     finished: entries.length > 0 && terminal === entries.length,
+  };
+}
+
+export interface InstallProgress {
+  /** Aggregate fraction across the install stage (mean of per-app fractions;
+   *  a terminal entry counts as settled, the label carries the honesty). */
+  fraction: number;
+  /** Apps whose installer reported real success. */
+  installed: number;
+  /** Apps whose install failed or was refused by the trust gate. */
+  failed: number;
+  /** Apps whose install the user canceled before it started. */
+  canceled: number;
+  /** True once every id is terminal. */
+  finished: boolean;
+}
+
+/**
+ * Aggregate progress of the batch's install stage (FC-41): the mean of the
+ * per-app staged fractions. Failed/canceled entries count as settled so one
+ * refusal never wedges the bar — the summary label states failures explicitly,
+ * the bar only ever answers "how far along is this stage".
+ */
+export function installProgress(
+  ids: readonly string[],
+  states: ReadonlyMap<string, AppDownloadState>,
+): InstallProgress {
+  let sum = 0;
+  let installed = 0;
+  let failed = 0;
+  let canceled = 0;
+  let terminal = 0;
+  for (const id of ids) {
+    const state = states.get(id);
+    switch (state?.phase) {
+      case "installing":
+        sum += Math.min(Math.max(state.fraction, 0), 1);
+        break;
+      case "installed":
+        sum += 1;
+        installed += 1;
+        terminal += 1;
+        break;
+      case "installFailed":
+        sum += 1;
+        failed += 1;
+        terminal += 1;
+        break;
+      case "installCanceled":
+        sum += 1;
+        canceled += 1;
+        terminal += 1;
+        break;
+      default:
+        // waitingInstall (or a state that never entered the stage) — ahead of us.
+        break;
+    }
+  }
+  return {
+    fraction: ids.length > 0 ? Math.min(sum / ids.length, 1) : 0,
+    installed,
+    failed,
+    canceled,
+    finished: ids.length > 0 && terminal === ids.length,
   };
 }

@@ -7,7 +7,13 @@
 import { Channel, invoke, isTauri } from "@tauri-apps/api/core";
 import { buildInfo } from "../api/commands";
 import { OS_KEYS, type OsKey } from "../releases/types";
-import type { DownloadEngine, DownloadEvent, DownloadRequest } from "./types";
+import type {
+  DownloadEngine,
+  DownloadEvent,
+  DownloadRequest,
+  InstallEvent,
+  InstallRequest,
+} from "./types";
 
 export interface Platform {
   os: OsKey;
@@ -34,6 +40,14 @@ const tauriEngine: DownloadEngine = {
   },
   cancel(id: string): void {
     void invoke("cancel_download", { id });
+  },
+  async install(requests: InstallRequest[], onEvent: (event: InstallEvent) => void): Promise<void> {
+    const channel = new Channel<InstallEvent>();
+    channel.onmessage = onEvent;
+    await invoke("install_apps", { requests, onEvent: channel });
+  },
+  cancelInstalls(): void {
+    void invoke("cancel_installs");
   },
 };
 

@@ -4,7 +4,7 @@ import type { CatalogApp } from "../catalog/types";
 import { liveRelease, type ReleaseState } from "../releases/types";
 import { statusFor } from "../install/status";
 import type { AppDownloadState } from "../downloads/types";
-import { isActive, stateFraction } from "../downloads/progress";
+import { isActive, isInstallActive, stateFraction } from "../downloads/progress";
 import { AppIcon } from "./AppIcon";
 import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
@@ -27,8 +27,9 @@ export function ProductCard({ app, release, installedVersion, download, onOpen }
   // A badge only when detection produced a reading for this app (undefined means
   // not probed — coming-soon apps, or running outside the Tauri shell).
   const status = statusFor(installedVersion, live?.version);
-  // The per-card live bar (FC-31) while this app downloads or verifies.
+  // The per-card live bar (FC-31/41) while this app downloads or installs.
   const downloading = isActive(download);
+  const installing = isInstallActive(download);
   return (
     <button
       type="button"
@@ -58,11 +59,13 @@ export function ProductCard({ app, release, installedVersion, download, onOpen }
             {t("downloads-count", { count: live.totalDownloads })}
           </p>
         )}
-        {downloading && (
+        {(downloading || installing) && (
           <div className="card-progress">
             <ProgressBar
               fraction={stateFraction(download)}
-              label={t("dl-progress-label", { name: app.name })}
+              label={t(installing ? "install-progress-label" : "dl-progress-label", {
+                name: app.name,
+              })}
               percentClassName="card-progress-percent"
             />
           </div>

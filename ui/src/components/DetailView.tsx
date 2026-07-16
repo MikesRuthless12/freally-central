@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { openExternal, revealInFolder } from "../api/commands";
+import { launchApp, openExternal, revealInFolder } from "../api/commands";
 import { useI18n } from "../i18n";
 import { appDescription, appFeatures, appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
@@ -8,8 +8,14 @@ import { liveRelease, type OsKey, type ReleaseState } from "../releases/types";
 import { downloadAction, statusFor } from "../install/status";
 import type { DownloadAction } from "../install/types";
 import type { DownloadsApi } from "../downloads/useDownloads";
-import { isActive, isCancelable, stateFraction } from "../downloads/progress";
-import { failureMessageKey } from "../downloads/messages";
+import {
+  isActive,
+  isCancelable,
+  isInstallActive,
+  isInstallReady,
+  stateFraction,
+} from "../downloads/progress";
+import { failureMessageKey, installFailureMessageKey } from "../downloads/messages";
 import { AppIcon } from "./AppIcon";
 import { ChangelogView } from "./ChangelogView";
 import { ProgressBar } from "./ProgressBar";
@@ -41,6 +47,7 @@ const ACTION_KEY: Record<DownloadAction, string> = {
 export function DetailView({ app, release, installedVersion, downloads, onBack }: DetailViewProps) {
   const { t, locale } = useI18n();
   const [changelogOpen, setChangelogOpen] = useState(false);
+  const [openFailed, setOpenFailed] = useState(false);
   const soon = app.status === "coming-soon";
   const tagline = appTagline(t, app);
   const description = appDescription(t, app);
@@ -56,6 +63,8 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   const download = downloads.byId.get(app.id);
   const engineReady = downloads.supported && asset !== null;
   const downloading = isActive(download);
+  // The hands-off install stage (FC-41) — same panel, its own bar and label.
+  const installing = isInstallActive(download);
   // isCancelable also covers an orphaned backend download ("alreadyDownloading"
   // after a reload) — Cancel must reach it or the user is locked out.
   const cancelable = isCancelable(download);
@@ -65,13 +74,26 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   // or not detection has resolved — a failed or still-loading probe must never
   // hide it. Its label reflects detected status when known, else a plain Download.
   const showDownload = !soon && (downloadUrl !== undefined || engineReady);
-  const downloadLabelKey = status ? ACTION_KEY[downloadAction(status)] : "card-download";
-  const startDownload = () => {
+  const action: DownloadAction = status ? downloadAction(status) : "install";
+  const downloadLabelKey = status ? ACTION_KEY[action] : "card-download";
+  // Open (FC-42): the app is on this machine — detected, or installed just now.
+  const showOpen = downloads.supported && status !== null && status !== "not-installed";
+  const startPrimary = () => {
     if (downloads.supported && asset) {
-      downloads.start(app.id, asset);
+      // The button's label is the consent: "Install"/"Update" run the whole
+      // hands-off flow (FC-40); a plain "Download" (status unknown) or
+      // "Re-download" only fetches the verified installer. A file already
+      // verified on disk installs directly — no needless second download.
+      if (!status || action === "redownload") downloads.start(app.id, asset);
+      else if (isInstallReady(download)) downloads.install(app.id);
+      else downloads.installFlow(app.id, asset);
     } else if (downloadUrl) {
       void openExternal(downloadUrl);
     }
+  };
+  const openApp = () => {
+    setOpenFailed(false);
+    launchApp(app.id, app.name).catch(() => setOpenFailed(true));
   };
   return (
     <section className="detail">
@@ -141,8 +163,13 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
 
       {soon && <p className="detail-note">{t("detail-coming-soon-note")}</p>}
 
-      {(live || app.site || showDownload) && (
+      {(live || app.site || showDownload || showOpen) && (
         <div className="detail-actions">
+          {showOpen && (
+            <button type="button" className="btn btn-primary" onClick={openApp}>
+              {t("open-app")}
+            </button>
+          )}
           {live && (
             <button type="button" className="btn" onClick={() => setChangelogOpen(true)}>
               {t("detail-whats-new")}
@@ -151,14 +178,18 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
           {app.site && (
             <button
               type="button"
-              className={showDownload ? "btn" : "btn btn-primary"}
+              className={showDownload || showOpen ? "btn" : "btn btn-primary"}
               onClick={() => void openExternal(app.site as string)}
             >
               {t("detail-visit-site")}
             </button>
           )}
-          {showDownload && !downloading && (
-            <button type="button" className="btn btn-primary" onClick={startDownload}>
+          {showDownload && !downloading && !installing && (
+            <button
+              type="button"
+              className={showOpen ? "btn" : "btn btn-primary"}
+              onClick={startPrimary}
+            >
               {t(
                 download?.phase === "failed" || download?.phase === "canceled"
                   ? "dl-retry"
@@ -174,8 +205,11 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
         </div>
       )}
 
-      {/* The live download panel (FC-31): a real-bytes bar with the two-decimal
-          percent while streaming/verifying, then an honest terminal note. */}
+      {openFailed && <p className="detail-download-note detail-download-note--error">{t("open-failed", { name: app.name })}</p>}
+
+      {/* The live download/install panel (FC-31 + FC-41): a real-bytes bar with
+          the two-decimal percent while streaming/verifying, the staged install
+          bar while the installer runs, then an honest terminal note. */}
       {download && (
         <div className="detail-download">
           {downloading && (
@@ -190,13 +224,23 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
               />
             </>
           )}
+          {installing && (
+            <>
+              <span className="detail-download-phase">{t("dl-installing")}</span>
+              <ProgressBar
+                fraction={stateFraction(download)}
+                label={t("install-progress-label", { name: app.name })}
+                percentClassName="detail-download-percent"
+              />
+            </>
+          )}
           {download.phase === "done" && (
             <>
               <p className="detail-download-note detail-download-note--ok">
                 {t(download.checksumVerified ? "dl-done-verified" : "dl-done-size-only")}
               </p>
               {/* The verified installer is real and reachable — show which file
-                  and open its folder (Phase 5 will run it hands-off). */}
+                  and open its folder (Install runs it hands-off from there). */}
               <span className="detail-download-file">
                 {download.path.split(/[\\/]/).pop()}
               </span>
@@ -208,6 +252,17 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
                 {t("dl-show-in-folder")}
               </button>
             </>
+          )}
+          {download.phase === "installed" && (
+            <p className="detail-download-note detail-download-note--ok">{t("install-done")}</p>
+          )}
+          {download.phase === "installFailed" && (
+            <p className="detail-download-note detail-download-note--error">
+              {t(installFailureMessageKey(download.code))}
+            </p>
+          )}
+          {download.phase === "installCanceled" && (
+            <p className="detail-download-note">{t("install-canceled")}</p>
           )}
           {download.phase === "failed" && (
             <p className="detail-download-note detail-download-note--error">

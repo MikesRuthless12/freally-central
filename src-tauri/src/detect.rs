@@ -219,8 +219,9 @@ fn detect_one(query: &DetectQuery) -> Option<String> {
 }
 
 /// Run a package-manager query and return a cleaned version on success only.
+/// Shared with the install engine's post-install package check (Phase 5).
 #[cfg(target_os = "linux")]
-fn run_version(program: &str, args: &[&str]) -> Option<String> {
+pub(crate) fn run_version(program: &str, args: &[&str]) -> Option<String> {
     let output = std::process::Command::new(program)
         .args(args)
         .output()
@@ -238,20 +239,35 @@ fn run_version(program: &str, args: &[&str]) -> Option<String> {
 /// reported dishonestly.
 #[cfg(target_os = "linux")]
 fn detect_appimage_version(query: &DetectQuery) -> Option<String> {
-    use std::path::PathBuf;
+    let path = find_appimage(&query.name, &query.id)?;
+    version_from_appimage_name(&path.file_name()?.to_string_lossy())
+}
 
-    let mut dirs: Vec<PathBuf> = vec![PathBuf::from("/opt")];
+/// The directories an installed AppImage may live in — shared by detection and
+/// by the install engine (Phase 5), which places AppImages in the first entry
+/// under $HOME (~/Applications) so what it installs is what detection finds.
+#[cfg(target_os = "linux")]
+pub(crate) fn appimage_search_dirs() -> Vec<std::path::PathBuf> {
+    use std::path::PathBuf;
+    let mut dirs: Vec<PathBuf> = Vec::new();
     if let Some(home) = std::env::var_os("HOME") {
         let home = PathBuf::from(home);
         dirs.push(home.join("Applications"));
         dirs.push(home.join(".local/bin"));
         dirs.push(home.join("Downloads"));
     }
+    dirs.push(PathBuf::from("/opt"));
+    dirs
+}
 
-    let name_prefix = query.name.to_lowercase();
-    let id_prefix = query.id.to_lowercase();
+/// Find an installed AppImage for an app by product name / id filename prefix,
+/// requiring a parseable version token (same honesty rule as detection).
+#[cfg(target_os = "linux")]
+pub(crate) fn find_appimage(name: &str, id: &str) -> Option<std::path::PathBuf> {
+    let name_prefix = name.to_lowercase();
+    let id_prefix = id.to_lowercase();
 
-    for dir in dirs {
+    for dir in appimage_search_dirs() {
         let Ok(entries) = std::fs::read_dir(&dir) else {
             continue;
         };
@@ -265,8 +281,8 @@ fn detect_appimage_version(query: &DetectQuery) -> Option<String> {
             if !lower.starts_with(&name_prefix) && !lower.starts_with(&id_prefix) {
                 continue;
             }
-            if let Some(v) = version_from_appimage_name(&file) {
-                return Some(v);
+            if version_from_appimage_name(&file).is_some() {
+                return Some(entry.path());
             }
         }
     }
@@ -274,11 +290,19 @@ fn detect_appimage_version(query: &DetectQuery) -> Option<String> {
 }
 
 /// Extract an `x.y[.z]` version from an AppImage filename, e.g.
-/// "Freally Capture_0.2.0_amd64.AppImage" → "0.2.0". Returns None when no
-/// dotted-numeric token is present (so we don't fabricate a version).
+/// "Freally Capture_0.2.0_amd64.AppImage" → "0.2.0".
 #[cfg(target_os = "linux")]
-fn version_from_appimage_name(file: &str) -> Option<String> {
-    let stem = file.strip_suffix(".AppImage").unwrap_or(file);
+pub(crate) fn version_from_appimage_name(file: &str) -> Option<String> {
+    version_token(file.strip_suffix(".AppImage").unwrap_or(file))
+}
+
+/// The first dotted-numeric token in a `_`/`-`-separated file stem, e.g.
+/// "freally-capture_0.4.0_amd64" → "0.4.0". Returns None when no such token is
+/// present (so callers never fabricate a version). Shared with the install
+/// engine, which uses it to post-check package installs against the package
+/// file's own version.
+#[cfg(target_os = "linux")]
+pub(crate) fn version_token(stem: &str) -> Option<String> {
     for token in stem.split(['_', '-']) {
         let is_version = token
             .split('.')

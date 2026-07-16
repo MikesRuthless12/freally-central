@@ -3,6 +3,15 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## 0.5.0 — Phase 5: hands-off silent install
+
+- **Silent install** (FC-40): one click carries an app — or every app, via **Download & install all** — through download, verification, and an unattended install with the installer's own defaults. Windows runs the NSIS setup with `/S` (per-user, no UAC prompt; `msiexec /qn` as the MSI fallback), macOS mounts the `.dmg` and copies the app into Applications, Linux places the AppImage in `~/Applications` (deb/rpm install through a **single `pkexec` consent for the whole batch**). At most one elevation consent per batch, zero wizard clicks.
+- **Only verified official installers ever execute.** Before anything runs, the engine re-checks, independently of the catalog manifest: the file must have a **matching published SHA-256** (no digest → no silent install), its source release must belong to a **trusted owner compiled into the app**, and the on-disk bytes are **re-hashed** at install time — a tampered file is deleted and refused, with the refusal shown honestly.
+- **Install progress in the same bar** (FC-41): the card and detail bars continue through the install stage with a determinate staged estimate that only claims **100%** on the installer's real success; the aggregate bar and batch summary cover the install stage too ("N of M installs failed" — never dressed up as success).
+- **Post-install** (FC-42): the badge flips to **Installed ✓** (confirmed by a detection re-probe of the installer's own record) and the detail view offers **Open**, which launches the app from what its installer actually registered.
+- Cancel stays honest: pending installs cancel; a running installer is never killed mid-run (that could corrupt an install) and reports its real outcome.
+- All new UI strings localized across the 18 locales; i18n parity lint stays green.
+
 ## 0.4.0 — Phase 4: downloads, the live progress bar & Download All
 
 - A native **download engine**: each app's right-for-this-machine installer streams from its GitHub release to a temp folder with a **precise two-decimal percent** (e.g. `38.92%`) computed from real bytes received against the API-published size — landing on exactly **100.00%** at completion. Interrupted downloads resume where they left off.

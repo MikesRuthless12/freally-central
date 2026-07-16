@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { formatPercent } from "../releases/format";
 import type { InstallerAsset } from "../releases/types";
-import { batchProgress, fraction, isActive, isCancelable, stateFraction } from "./progress";
+import {
+  batchProgress,
+  fraction,
+  installProgress,
+  isActive,
+  isCancelable,
+  isInstallActive,
+  isInstallReady,
+  stateFraction,
+} from "./progress";
 import type { AppDownloadState, BatchEntry } from "./types";
 
 function asset(size: number): InstallerAsset {
@@ -44,6 +53,32 @@ describe("fraction / formatPercent", () => {
     expect(stateFraction({ phase: "done", path: "x", checksumVerified: true })).toBe(1);
     expect(stateFraction({ phase: "failed", code: "network", received: 25 })).toBe(0);
     expect(stateFraction({ phase: "canceled", received: 25 })).toBe(0);
+    // Install phases (FC-41): the bar restarts for the install stage and only
+    // reads 1 from a real success.
+    expect(stateFraction({ phase: "installing", fraction: 0.6, path: "x", checksumVerified: true })).toBe(0.6);
+    expect(stateFraction({ phase: "installing", fraction: 1.7, path: "x", checksumVerified: true })).toBe(1);
+    expect(stateFraction({ phase: "waitingInstall", path: "x", checksumVerified: true })).toBe(0);
+    expect(stateFraction({ phase: "installed", path: "x", checksumVerified: true })).toBe(1);
+    expect(stateFraction({ phase: "installFailed", code: "installerFailed", path: "x", checksumVerified: true })).toBe(0);
+  });
+
+  it("separates install activity from download activity (distinct Cancel affordances)", () => {
+    const installing: AppDownloadState = { phase: "installing", fraction: 0.5, path: "x", checksumVerified: true };
+    const waiting: AppDownloadState = { phase: "waitingInstall", path: "x", checksumVerified: true };
+    expect(isInstallActive(installing)).toBe(true);
+    expect(isInstallActive(waiting)).toBe(true);
+    expect(isInstallActive({ phase: "downloading", received: 1, total: 2 })).toBe(false);
+    expect(isActive(installing)).toBe(false);
+    expect(isCancelable(installing)).toBe(false);
+  });
+
+  it("knows which states an install can (re)start from", () => {
+    expect(isInstallReady({ phase: "done", path: "x", checksumVerified: true })).toBe(true);
+    expect(isInstallReady({ phase: "installFailed", code: "busy", path: "x", checksumVerified: true })).toBe(true);
+    expect(isInstallReady({ phase: "installCanceled", path: "x", checksumVerified: true })).toBe(true);
+    expect(isInstallReady({ phase: "installing", fraction: 0.2, path: "x", checksumVerified: true })).toBe(false);
+    expect(isInstallReady({ phase: "downloading", received: 1, total: 2 })).toBe(false);
+    expect(isInstallReady(undefined)).toBe(false);
   });
 });
 
@@ -119,5 +154,68 @@ describe("batchProgress (FC-32)", () => {
 
   it("an empty batch is never 'finished'", () => {
     expect(batchProgress([], states({})).finished).toBe(false);
+  });
+
+  it("an entry that continued into its install stays fully counted (no backward bar)", () => {
+    const atDone = batchProgress(
+      entries,
+      states({
+        a: { phase: "done", path: "x", checksumVerified: true },
+        b: { phase: "done", path: "y", checksumVerified: true },
+        c: { phase: "done", path: "z", checksumVerified: true },
+      }),
+    );
+    const whileInstalling = batchProgress(
+      entries,
+      states({
+        a: { phase: "installing", fraction: 0.3, path: "x", checksumVerified: true },
+        b: { phase: "installed", path: "y", checksumVerified: true },
+        c: { phase: "installFailed", code: "installerFailed", path: "z", checksumVerified: true },
+      }),
+    );
+    expect(atDone.fraction).toBe(1);
+    expect(whileInstalling.fraction).toBe(1);
+    expect(whileInstalling.done).toBe(3);
+    expect(whileInstalling.finished).toBe(true);
+  });
+});
+
+describe("installProgress (FC-41)", () => {
+  function states(map: Record<string, AppDownloadState>): Map<string, AppDownloadState> {
+    return new Map(Object.entries(map));
+  }
+
+  it("averages the staged fractions across the install stage", () => {
+    const progress = installProgress(
+      ["a", "b"],
+      states({
+        a: { phase: "installing", fraction: 0.5, path: "x", checksumVerified: true },
+        b: { phase: "waitingInstall", path: "y", checksumVerified: true },
+      }),
+    );
+    expect(progress.fraction).toBeCloseTo(0.25);
+    expect(progress.installed).toBe(0);
+    expect(progress.finished).toBe(false);
+  });
+
+  it("lands on exactly 100% and counts outcomes honestly", () => {
+    const progress = installProgress(
+      ["a", "b", "c"],
+      states({
+        a: { phase: "installed", path: "x", checksumVerified: true },
+        b: { phase: "installFailed", code: "elevationDeclined", path: "y", checksumVerified: true },
+        c: { phase: "installCanceled", path: "z", checksumVerified: true },
+      }),
+    );
+    expect(progress.fraction).toBe(1);
+    expect(progress.installed).toBe(1);
+    expect(progress.failed).toBe(1);
+    expect(progress.canceled).toBe(1);
+    expect(progress.finished).toBe(true);
+  });
+
+  it("an empty stage is never 'finished'", () => {
+    expect(installProgress([], states({})).finished).toBe(false);
+    expect(installProgress([], states({})).fraction).toBe(0);
   });
 });

@@ -95,6 +95,51 @@ mod fail {
 #[derive(Default)]
 pub struct Downloads(Mutex<HashMap<String, Arc<AtomicBool>>>);
 
+/// One verified installer this session produced, exactly as the engine left it
+/// on disk. Only the download pipeline writes entries (after size + checksum
+/// verification); the install engine (Phase 5) consumes them. The UI can never
+/// name a file to execute — it names an app id, and the path comes from here.
+#[derive(Debug, Clone)]
+pub struct VerifiedFile {
+    pub path: PathBuf,
+    pub file_name: String,
+    /// The SHA-256 actually computed from the received bytes.
+    pub sha256: String,
+    /// True only when GitHub published a digest and it matched.
+    pub checksum_verified: bool,
+    /// The validated source URL (github.com release-asset shape) — the install
+    /// engine re-checks its owner against the baked-in trust allowlist.
+    pub source_url: String,
+}
+
+/// Session registry of verified downloads, keyed by app id.
+#[derive(Default)]
+pub struct VerifiedDownloads(Mutex<HashMap<String, VerifiedFile>>);
+
+impl VerifiedDownloads {
+    fn record(&self, id: &str, file: VerifiedFile) {
+        if let Ok(mut map) = self.0.lock() {
+            map.insert(id.to_string(), file);
+        }
+    }
+
+    fn invalidate(&self, id: &str) {
+        if let Ok(mut map) = self.0.lock() {
+            map.remove(id);
+        }
+    }
+
+    /// The verified file for an app, if this session produced one.
+    pub fn get(&self, id: &str) -> Option<VerifiedFile> {
+        self.0.lock().ok().and_then(|map| map.get(id).cloned())
+    }
+
+    /// Drop the entry (e.g. after the file failed a re-hash at install time).
+    pub fn remove(&self, id: &str) {
+        self.invalidate(id);
+    }
+}
+
 /// Removes the download's registry entry on every exit path (including panics).
 struct Registration<'a> {
     downloads: &'a Downloads,
@@ -120,6 +165,7 @@ pub async fn start_download(
     request: DownloadRequest,
     on_event: Channel<DownloadEvent>,
     downloads: State<'_, Downloads>,
+    verified: State<'_, VerifiedDownloads>,
 ) -> Result<(), String> {
     // Register (and auto-unregister) the cancel flag, refusing a duplicate.
     let cancel = Arc::new(AtomicBool::new(false));
@@ -145,7 +191,11 @@ pub async fn start_download(
         id: request.id.clone(),
     };
 
-    if let Err((code, detail)) = run_download(&request, &cancel, &on_event).await {
+    // A re-download is about to replace the app's file — whatever was verified
+    // before must not stay eligible for install while the bytes change.
+    verified.invalidate(&request.id);
+
+    if let Err((code, detail)) = run_download(&request, &cancel, &on_event, &verified).await {
         emit(&on_event, DownloadEvent::Failed { code, detail });
     }
     Ok(())
@@ -175,6 +225,7 @@ async fn run_download(
     request: &DownloadRequest,
     cancel: &AtomicBool,
     on_event: &Channel<DownloadEvent>,
+    verified: &VerifiedDownloads,
 ) -> Result<(), Fail> {
     let url = validate_asset_url(&request.url).map_err(|e| (fail::BAD_REQUEST, e))?;
     // The id names the per-app subdirectory, the asset name the file — both
@@ -272,6 +323,19 @@ async fn run_download(
     tokio::fs::rename(&part_path, &final_path)
         .await
         .map_err(|e| (fail::IO, e.to_string()))?;
+
+    // Record what was verified so the install engine (Phase 5) can resolve this
+    // app id to a file it is allowed to execute.
+    verified.record(
+        &request.id,
+        VerifiedFile {
+            path: final_path.clone(),
+            file_name: file_name.clone(),
+            sha256: actual_sha256.clone(),
+            checksum_verified,
+            source_url: request.url.clone(),
+        },
+    );
 
     emit(
         on_event,
