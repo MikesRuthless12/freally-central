@@ -78,6 +78,11 @@ jobs:
           cache: npm
           cache-dependency-path: ui/package-lock.json
 
+      # tauri-action runs `npm run tauri build` from the repo root, so the root
+      # @tauri-apps/cli (the `tauri` binary) must be installed — not just ui/ deps.
+      - name: Install root deps (Tauri CLI)
+        run: npm ci
+
       - name: Install UI deps
         working-directory: ui
         run: npm ci
