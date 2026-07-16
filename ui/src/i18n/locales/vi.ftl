@@ -106,3 +106,11 @@ feat-freally-capture-2 = Ghi đa track (bộ mã hóa phần cứng + codec loss
 feat-freally-capture-3 = Phát đồng thời lên Twitch/YouTube/Kick (RTMP/SRT/WHIP)
 feat-freally-capture-4 = Camera ảo, bộ đệm phát lại, downstream keyer, và biến đổi 3D
 feat-freally-capture-5 = Giao diện 18 ngôn ngữ
+
+# --- Install status & actions (Phase 3) ---
+status-installed = Đã cài đặt
+status-update = Có bản cập nhật
+status-not-installed = Chưa cài đặt
+action-install = Cài đặt
+action-update = Cập nhật
+action-redownload = Tải lại

@@ -12,13 +12,16 @@ and a **Download All** button — with a live 0–100 % download/install progres
 
 ---
 
-> **⚠️ DoD amendment — 2026-07-15.** Two standing items apply to **every phase's** Definition of Done:
+> **⚠️ DoD amendment — 2026-07-15.** Three standing items apply to **every phase's** Definition of Done:
 >
 > - **`/simplify` pass** — run **`/simplify` on the full phase diff** in unison with **`/code-review`**
 >   and **`/security-review`**, applying its cleanups (reuse over duplication, no speculative
 >   abstraction/config, remove orphans the change created) before the phase is done and before any push.
 > - **All 18 locale keys updated** — any new or changed UI string is added to **all 18** Fluent locale
 >   catalogs (every locale gets the key); `i18n:lint` parity must be green.
+> - **Local CI gate before push** — run **`npm run ci:local`** (mirrors the GitHub 3-OS CI: `cargo fmt
+>   --check`, `clippy -D warnings`, `cargo test`, `cargo deny`, UI `typecheck`/`lint`/`test`/`i18n:lint`,
+>   and Playwright `test:e2e`) and get it **green before any push** — never push on a red local gate.
 
 ## Charter invariants (never violated)
 
@@ -71,10 +74,13 @@ passes.** Run it in this order (reviews and all fixes come **before** any push):
 9. **Docs** — update the README, add a **CHANGELOG entry for the phase/version**, and update the
    site (its `changelog.html` / `index.html` + the real download counter); bump the version in every
    version-bearing file.
-10. **Commit & push until CI is green** — the 3-OS matrix must pass on the PR before merge.
-11. **Tag / re-tag** the version (`vX.Y.Z`).
-12. **Rebuild the release** — signed installers for all three OSes via the tag pipeline.
-13. **Publish** — release with `--latest` (updater endpoint resolves) and publish the docs site.
+10. **Local CI gate** — run **`npm run ci:local`** and get it **green before pushing**. It mirrors the
+    GitHub 3-OS CI in one command (`cargo fmt --check`, `clippy -D warnings`, `cargo test`, `cargo deny`,
+    UI `typecheck`/`lint`/`test`/`i18n:lint`, Playwright `test:e2e`) so red CI is caught locally first.
+11. **Commit & push until CI is green** — the 3-OS matrix must pass on the PR before merge.
+12. **Tag / re-tag** the version (`vX.Y.Z`).
+13. **Rebuild the release** — signed installers for all three OSes via the tag pipeline.
+14. **Publish** — release with `--latest` (updater endpoint resolves) and publish the docs site.
 
 > Mirrors the Freally-brand rule: **finish `/code-review` + `/security-review` and fix ALL findings
 > BEFORE pushing** — push only once it's green-ready.

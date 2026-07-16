@@ -5,12 +5,17 @@ import { appDescription, appFeatures, appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
 import { formatCount, formatDate } from "../releases/format";
 import { liveRelease, type OsKey, type ReleaseState } from "../releases/types";
+import { downloadAction, statusFor } from "../install/status";
+import type { DownloadAction } from "../install/types";
 import { AppIcon } from "./AppIcon";
 import { ChangelogView } from "./ChangelogView";
+import { StatusBadge } from "./StatusBadge";
 
 interface DetailViewProps {
   app: CatalogApp;
   release?: ReleaseState;
+  /** Detected installed version: string, null (probed & absent), or undefined (not probed). */
+  installedVersion?: string | null;
   onBack: () => void;
 }
 
@@ -21,7 +26,14 @@ const OS_ROWS: { key: OsKey; label: string }[] = [
   { key: "linux", label: "Linux" },
 ];
 
-export function DetailView({ app, release, onBack }: DetailViewProps) {
+// The download button's label per action (FC-22).
+const ACTION_KEY: Record<DownloadAction, string> = {
+  install: "action-install",
+  update: "action-update",
+  redownload: "action-redownload",
+};
+
+export function DetailView({ app, release, installedVersion, onBack }: DetailViewProps) {
   const { t, locale } = useI18n();
   const [changelogOpen, setChangelogOpen] = useState(false);
   const soon = app.status === "coming-soon";
@@ -30,6 +42,19 @@ export function DetailView({ app, release, onBack }: DetailViewProps) {
   const features = appFeatures(t, app);
   const live = liveRelease(release);
   const releasedDate = live ? formatDate(locale, live.publishedAt) : null;
+  // Install status (FC-21) — null when detection produced no reading for this app.
+  const status = statusFor(installedVersion, live?.version);
+  // Where the download button sends the user: the real installer source — the
+  // release page, else the app's site, else its GitHub releases. The silent
+  // download/install engine itself lands in Phase 4/5; here the button reflects
+  // status and routes to the verified download.
+  const downloadUrl =
+    live?.htmlUrl ?? app.site ?? (app.repo ? `https://github.com/${app.repo}/releases` : undefined);
+  // The primary download CTA shows for any available app with a source, whether
+  // or not detection has resolved — a failed or still-loading probe must never
+  // hide it. Its label reflects detected status when known, else a plain Download.
+  const showDownload = !soon && downloadUrl !== undefined;
+  const downloadLabelKey = status ? ACTION_KEY[downloadAction(status)] : "card-download";
   return (
     <section className="detail">
       <button type="button" className="btn btn-ghost detail-back" onClick={onBack}>
@@ -45,6 +70,7 @@ export function DetailView({ app, release, onBack }: DetailViewProps) {
             <span className={soon ? "pill pill--soon" : "pill pill--view"}>
               {soon ? t("coming-soon") : t("available")}
             </span>
+            {status && <StatusBadge status={status} />}
             {live && <span className="detail-version">v{live.version}</span>}
             {app.startedDate && (
               <span className="detail-started">{t("detail-started", { date: app.startedDate })}</span>
@@ -97,7 +123,7 @@ export function DetailView({ app, release, onBack }: DetailViewProps) {
 
       {soon && <p className="detail-note">{t("detail-coming-soon-note")}</p>}
 
-      {(live || app.site) && (
+      {(live || app.site || showDownload) && (
         <div className="detail-actions">
           {live && (
             <button type="button" className="btn" onClick={() => setChangelogOpen(true)}>
@@ -107,10 +133,19 @@ export function DetailView({ app, release, onBack }: DetailViewProps) {
           {app.site && (
             <button
               type="button"
-              className="btn btn-primary"
+              className={showDownload ? "btn" : "btn btn-primary"}
               onClick={() => void openExternal(app.site as string)}
             >
               {t("detail-visit-site")}
+            </button>
+          )}
+          {!soon && downloadUrl && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void openExternal(downloadUrl)}
+            >
+              {t(downloadLabelKey)}
             </button>
           )}
         </div>

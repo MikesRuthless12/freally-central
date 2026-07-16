@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useCatalog } from "../catalog/loader";
 import type { CatalogApp } from "../catalog/types";
 import { useI18n } from "../i18n";
 import { formatCount } from "../releases/format";
 import { useReleases } from "../releases/useReleases";
+import { useInstalled } from "../install/useInstalled";
 import { useTheme } from "../theme";
 import { SettingsDialog } from "../panels/Settings";
 import { CardGrid } from "./CardGrid";
@@ -29,7 +30,14 @@ export function Hub() {
   const { t, locale } = useI18n();
   const { apps, source, loaded } = useCatalog();
   const releases = useReleases(apps);
+  const installed = useInstalled(apps);
   const { theme, toggle } = useTheme();
+
+  // One manual Refresh re-checks both the live release data and what's installed.
+  const refreshAll = useCallback(() => {
+    releases.refresh();
+    installed.refresh();
+  }, [releases, installed]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -56,6 +64,7 @@ export function Hub() {
           <DetailView
             app={selected}
             release={releases.byId.get(selected.id)}
+            installedVersion={installed.byId.get(selected.id)}
             onBack={() => setSelectedId(null)}
           />
         ) : (
@@ -73,13 +82,18 @@ export function Hub() {
               <button
                 type="button"
                 className="link-btn"
-                onClick={releases.refresh}
-                disabled={releases.loading}
+                onClick={refreshAll}
+                disabled={releases.loading || installed.loading}
               >
                 {t("refresh")}
               </button>
             </div>
-            <CardGrid apps={visible} releases={releases.byId} onOpen={(a) => setSelectedId(a.id)} />
+            <CardGrid
+              apps={visible}
+              releases={releases.byId}
+              installed={installed.byId}
+              onOpen={(a) => setSelectedId(a.id)}
+            />
           </>
         )}
       </main>

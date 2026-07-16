@@ -6,7 +6,8 @@
   "license": "SEE LICENSE IN LICENSE",
   "author": "Mike Weaver (Havoc Software) <mythodikalone@gmail.com>",
   "scripts": {
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "ci:local": "node scripts/ci-local.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.0"

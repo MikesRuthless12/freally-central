@@ -106,3 +106,11 @@ feat-freally-capture-2 = 多轨录制（硬件编码器 + 自研无损编解码�
 feat-freally-capture-3 = 同时向 Twitch/YouTube/Kick 多路推流（RTMP/SRT/WHIP）
 feat-freally-capture-4 = 虚拟摄像头、回放缓冲、下游键控和 3D 变换
 feat-freally-capture-5 = 18 种语言界面
+
+# --- Install status & actions (Phase 3) ---
+status-installed = 已安装
+status-update = 有可用更新
+status-not-installed = 未安装
+action-install = 安装
+action-update = 更新
+action-redownload = 重新下载

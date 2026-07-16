@@ -106,3 +106,11 @@ feat-freally-capture-2 = 멀티트랙 녹화(하드웨어 인코더 + 자체 무
 feat-freally-capture-3 = Twitch/YouTube/Kick 동시 멀티스트리밍(RTMP/SRT/WHIP)
 feat-freally-capture-4 = 가상 카메라, 리플레이 버퍼, 다운스트림 키어, 3D 변환
 feat-freally-capture-5 = 18개 언어 UI
+
+# --- Install status & actions (Phase 3) ---
+status-installed = 설치됨
+status-update = 업데이트 사용 가능
+status-not-installed = 설치되지 않음
+action-install = 설치
+action-update = 업데이트
+action-redownload = 다시 다운로드

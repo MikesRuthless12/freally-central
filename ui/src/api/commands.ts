@@ -16,8 +16,19 @@ export function releaseNotes(): Promise<ReleaseNotes> {
  * A plain `<a target="_blank">` doesn't reach the OS browser from a Tauri
  * webview, so hand the URL to the opener plugin. Falls back to window.open when
  * running in a plain browser (dev/test).
+ *
+ * Only http(s) URLs are ever opened: these links come from the catalog manifest
+ * and the GitHub API, and restricting the scheme keeps a stray `file:`/other
+ * link from being handed to the OS opener (defense in depth).
  */
 export async function openExternal(url: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return; // not an absolute URL — nothing safe to open
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
   try {
     await openUrl(url);
   } catch {
