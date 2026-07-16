@@ -123,7 +123,9 @@ impl VerifiedDownloads {
         }
     }
 
-    fn invalidate(&self, id: &str) {
+    /// Drop an app's entry (a re-download starting, or a failed re-hash at
+    /// install time).
+    pub fn remove(&self, id: &str) {
         if let Ok(mut map) = self.0.lock() {
             map.remove(id);
         }
@@ -132,11 +134,6 @@ impl VerifiedDownloads {
     /// The verified file for an app, if this session produced one.
     pub fn get(&self, id: &str) -> Option<VerifiedFile> {
         self.0.lock().ok().and_then(|map| map.get(id).cloned())
-    }
-
-    /// Drop the entry (e.g. after the file failed a re-hash at install time).
-    pub fn remove(&self, id: &str) {
-        self.invalidate(id);
     }
 }
 
@@ -193,7 +190,7 @@ pub async fn start_download(
 
     // A re-download is about to replace the app's file — whatever was verified
     // before must not stay eligible for install while the bytes change.
-    verified.invalidate(&request.id);
+    verified.remove(&request.id);
 
     if let Err((code, detail)) = run_download(&request, &cancel, &on_event, &verified).await {
         emit(&on_event, DownloadEvent::Failed { code, detail });
@@ -533,6 +530,16 @@ async fn hash_existing_prefix(
         return Ok(0);
     }
     let mut file = tokio::fs::File::open(part_path).await?;
+    hash_file_into(&mut file, hasher).await
+}
+
+/// Hash the remainder of an open file into `hasher`, returning the byte count.
+/// Shared by resume-prefix hashing here and the install engine's execute-time
+/// re-hash (Phase 5) — one buffered loop to keep correct.
+pub(crate) async fn hash_file_into(
+    file: &mut tokio::fs::File,
+    hasher: &mut Sha256,
+) -> std::io::Result<u64> {
     let mut buf = vec![0u8; 256 * 1024];
     let mut hashed: u64 = 0;
     loop {

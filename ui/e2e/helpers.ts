@@ -20,6 +20,9 @@ export async function acceptEula(page: Page): Promise<void> {
   });
 }
 
+/** The live two-decimal percent every progress surface renders (FC-31/41). */
+export const PERCENT_RE = /^\d{1,3}[.,]\d{2}\s?%$/;
+
 const MANIFEST_URL = "https://mikesruthless12.github.io/freally-central/freally-central.json";
 
 const WINDOWS_ASSETS = { windows: "\\.(exe|msi)$", macos: "\\.dmg$", linux: "\\.(AppImage|deb|rpm)$" };

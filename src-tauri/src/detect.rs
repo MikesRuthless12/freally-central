@@ -75,19 +75,22 @@ fn detect_all(queries: &[DetectQuery]) -> Vec<DetectResult> {
         .collect()
 }
 
+/// Walk every uninstall entry — both hives, both registry views (native and
+/// 32-bit WOW6432Node), so a per-user NSIS install and a per-machine MSI are
+/// found the same way — calling `visit` with the opened key and its trimmed
+/// DisplayName until it returns false. Shared by detection and the install
+/// engine's launch (Phase 5), so the registry surface can never drift between
+/// the badge and the Open button.
 #[cfg(windows)]
-fn windows_installed_map() -> HashMap<String, String> {
+pub(crate) fn visit_uninstall_entries(mut visit: impl FnMut(&winreg::RegKey, &str) -> bool) {
     use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
     use winreg::RegKey;
 
-    // Both the native and 32-bit (WOW6432Node) views, under both hives, so a
-    // per-user NSIS install and a per-machine MSI are found the same way.
     const UNINSTALL_PATHS: [&str; 2] = [
         r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
         r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
     ];
 
-    let mut map: HashMap<String, String> = HashMap::new();
     for hive in [HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER] {
         let root = RegKey::predef(hive);
         for path in UNINSTALL_PATHS {
@@ -102,24 +105,34 @@ fn windows_installed_map() -> HashMap<String, String> {
                 let Ok(name) = app.get_value::<String, _>("DisplayName") else {
                     continue;
                 };
-                let name = name.trim().to_string();
-                let Ok(raw_version) = app.get_value::<String, _>("DisplayVersion") else {
-                    continue;
-                };
-                let Some(version) = clean_version(&raw_version) else {
-                    continue;
-                };
-                // Keep the newest version when a DisplayName appears more than once
-                // (a leftover per-machine entry beside a current per-user install).
-                match map.get(&name) {
-                    Some(existing) if version_key(existing) >= version_key(&version) => {}
-                    _ => {
-                        map.insert(name, version);
-                    }
+                if !visit(&app, name.trim()) {
+                    return;
                 }
             }
         }
     }
+}
+
+#[cfg(windows)]
+fn windows_installed_map() -> HashMap<String, String> {
+    let mut map: HashMap<String, String> = HashMap::new();
+    visit_uninstall_entries(|app, name| {
+        let Ok(raw_version) = app.get_value::<String, _>("DisplayVersion") else {
+            return true;
+        };
+        let Some(version) = clean_version(&raw_version) else {
+            return true;
+        };
+        // Keep the newest version when a DisplayName appears more than once
+        // (a leftover per-machine entry beside a current per-user install).
+        match map.get(name) {
+            Some(existing) if version_key(existing) >= version_key(&version) => {}
+            _ => {
+                map.insert(name.to_string(), version);
+            }
+        }
+        true
+    });
     map
 }
 
@@ -155,18 +168,24 @@ fn detect_all(queries: &[DetectQuery]) -> Vec<DetectResult> {
 
 // --- macOS ---------------------------------------------------------------------
 
+/// Where installed .app bundles live, in probe order — shared by detection and
+/// the install engine's copy step (Phase 5), so where installs write is
+/// exactly where detection reads.
+#[cfg(target_os = "macos")]
+pub(crate) fn applications_dirs() -> Vec<std::path::PathBuf> {
+    use std::path::PathBuf;
+    let mut dirs = vec![PathBuf::from("/Applications")];
+    if let Some(home) = std::env::var_os("HOME") {
+        dirs.push(PathBuf::from(home).join("Applications"));
+    }
+    dirs
+}
+
 #[cfg(target_os = "macos")]
 fn detect_one(query: &DetectQuery) -> Option<String> {
-    use std::path::PathBuf;
-
-    let mut bundles = vec![PathBuf::from(format!("/Applications/{}.app", query.name))];
-    if let Some(home) = std::env::var_os("HOME") {
-        bundles.push(
-            PathBuf::from(home)
-                .join("Applications")
-                .join(format!("{}.app", query.name)),
-        );
-    }
+    let bundles = applications_dirs()
+        .into_iter()
+        .map(|dir| dir.join(format!("{}.app", query.name)));
 
     for bundle in bundles {
         let plist = bundle.join("Contents/Info.plist");
@@ -193,24 +212,40 @@ fn detect_one(query: &DetectQuery) -> Option<String> {
 
 // --- Linux ---------------------------------------------------------------------
 
+/// The package names Tauri may have installed an app under: the product name
+/// lowercased with spaces hyphenated ("Freally Capture" → "freally-capture"),
+/// plus the manifest id when it differs (they are equal for the brand's apps).
+/// Shared by detection and the install engine's launch (Phase 5).
+#[cfg(target_os = "linux")]
+pub(crate) fn package_candidates(name: &str, id: &str) -> Vec<String> {
+    let derived = name.to_lowercase().replace(' ', "-");
+    let mut candidates = vec![derived];
+    if !candidates.iter().any(|c| c == id) {
+        candidates.push(id.to_string());
+    }
+    candidates
+}
+
+/// The installed version of a deb package, per dpkg (Debian/Ubuntu).
+#[cfg(target_os = "linux")]
+pub(crate) fn dpkg_version(pkg: &str) -> Option<String> {
+    run_version("dpkg-query", &["-W", "-f=${Version}", pkg])
+}
+
+/// The installed version of an rpm package (Fedora/openSUSE/RHEL).
+#[cfg(target_os = "linux")]
+pub(crate) fn rpm_version(pkg: &str) -> Option<String> {
+    run_version("rpm", &["-q", "--qf", "%{VERSION}", pkg])
+}
+
 #[cfg(target_os = "linux")]
 fn detect_one(query: &DetectQuery) -> Option<String> {
-    // Tauri's deb/rpm package name is the product name lowercased with spaces
-    // hyphenated ("Freally Capture" → "freally-capture"), which also equals the
-    // manifest id for the brand's apps; try both, deduped.
-    let derived = query.name.to_lowercase().replace(' ', "-");
-    let mut packages = vec![derived];
-    if !packages.iter().any(|p| p == &query.id) {
-        packages.push(query.id.clone());
-    }
-
-    for pkg in &packages {
-        // Debian/Ubuntu. Args passed directly (no shell) — no injection.
-        if let Some(v) = run_version("dpkg-query", &["-W", "-f=${Version}", pkg]) {
+    for pkg in package_candidates(&query.name, &query.id) {
+        // Args passed directly (no shell) — no injection.
+        if let Some(v) = dpkg_version(&pkg) {
             return Some(v);
         }
-        // Fedora/openSUSE/RHEL.
-        if let Some(v) = run_version("rpm", &["-q", "--qf", "%{VERSION}", pkg]) {
+        if let Some(v) = rpm_version(&pkg) {
             return Some(v);
         }
     }
@@ -219,9 +254,8 @@ fn detect_one(query: &DetectQuery) -> Option<String> {
 }
 
 /// Run a package-manager query and return a cleaned version on success only.
-/// Shared with the install engine's post-install package check (Phase 5).
 #[cfg(target_os = "linux")]
-pub(crate) fn run_version(program: &str, args: &[&str]) -> Option<String> {
+fn run_version(program: &str, args: &[&str]) -> Option<String> {
     let output = std::process::Command::new(program)
         .args(args)
         .output()
@@ -239,8 +273,7 @@ pub(crate) fn run_version(program: &str, args: &[&str]) -> Option<String> {
 /// reported dishonestly.
 #[cfg(target_os = "linux")]
 fn detect_appimage_version(query: &DetectQuery) -> Option<String> {
-    let path = find_appimage(&query.name, &query.id)?;
-    version_from_appimage_name(&path.file_name()?.to_string_lossy())
+    find_appimage(&query.name, &query.id).map(|(_, version)| version)
 }
 
 /// The directories an installed AppImage may live in — shared by detection and
@@ -262,8 +295,9 @@ pub(crate) fn appimage_search_dirs() -> Vec<std::path::PathBuf> {
 
 /// Find an installed AppImage for an app by product name / id filename prefix,
 /// requiring a parseable version token (same honesty rule as detection).
+/// Returns the path and that version.
 #[cfg(target_os = "linux")]
-pub(crate) fn find_appimage(name: &str, id: &str) -> Option<std::path::PathBuf> {
+pub(crate) fn find_appimage(name: &str, id: &str) -> Option<(std::path::PathBuf, String)> {
     let name_prefix = name.to_lowercase();
     let id_prefix = id.to_lowercase();
 
@@ -281,8 +315,8 @@ pub(crate) fn find_appimage(name: &str, id: &str) -> Option<std::path::PathBuf> 
             if !lower.starts_with(&name_prefix) && !lower.starts_with(&id_prefix) {
                 continue;
             }
-            if version_from_appimage_name(&file).is_some() {
-                return Some(entry.path());
+            if let Some(version) = version_from_appimage_name(&file) {
+                return Some((entry.path(), version));
             }
         }
     }

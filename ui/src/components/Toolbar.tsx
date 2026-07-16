@@ -29,33 +29,48 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
       ? t("install-all-none")
       : t("install-all-hint");
 
-  // The live aggregate bars reflect the batch that was actually queued; the
-  // lifecycle comes from the store, not re-derived from per-entry states.
-  const progress = batchProgress(batch.entries, downloads.byId);
-  const installs = installProgress(batch.installIds, downloads.byId);
+  // The live aggregate bar reflects the batch that was actually queued; the
+  // lifecycle comes from the store, not re-derived from per-entry states. Each
+  // stage's aggregate is computed only while that stage renders it.
+  let liveBar: { label: string; fraction: number } | null = null;
+  if (batch.status === "running") {
+    const progress = batchProgress(batch.entries, downloads.byId);
+    liveBar = {
+      label: t("batch-progress", { done: progress.done, total: batch.entries.length }),
+      fraction: progress.fraction,
+    };
+  } else if (batch.status === "installing") {
+    const installs = installProgress(batch.installIds, downloads.byId);
+    liveBar = {
+      label: t("batch-installing", { done: installs.installed, total: batch.installIds.length }),
+      fraction: installs.fraction,
+    };
+  }
 
   // The settled line reports EVERY problem the batch had — a failed install
   // must never hide a download that was never fetched, and vice versa. It
   // reads from the summary frozen at settle time, so later activity on a
   // member app can't rewrite what this batch's outcome was.
   const settledLabel = (s: BatchSummary): string => {
+    const entriesTotal = batch.entries.length;
+    const installTotal = batch.installIds.length;
     const parts: string[] = [];
     if (s.downloadsFailed > 0) {
-      parts.push(t("batch-failed", { failed: s.downloadsFailed, total: s.entriesTotal }));
+      parts.push(t("batch-failed", { failed: s.downloadsFailed, total: entriesTotal }));
     }
     if (s.installsFailed > 0) {
-      parts.push(t("batch-install-failed", { failed: s.installsFailed, total: s.installTotal }));
+      parts.push(t("batch-install-failed", { failed: s.installsFailed, total: installTotal }));
     }
     if (s.downloadsCanceled > 0) {
-      parts.push(t("batch-canceled", { canceled: s.downloadsCanceled, total: s.entriesTotal }));
+      parts.push(t("batch-canceled", { canceled: s.downloadsCanceled, total: entriesTotal }));
     }
     if (s.installsCanceled > 0) {
       parts.push(
-        t("batch-install-canceled", { canceled: s.installsCanceled, total: s.installTotal }),
+        t("batch-install-canceled", { canceled: s.installsCanceled, total: installTotal }),
       );
     }
     if (parts.length > 0) return parts.join(" ");
-    return s.installTotal > 0 ? t("batch-installed") : t("batch-done");
+    return installTotal > 0 ? t("batch-installed") : t("batch-done");
   };
 
   return (
@@ -86,34 +101,11 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
 
       {batch.status !== "idle" && (
         <div className="batch">
-          {batch.status === "running" && (
+          {liveBar && (
             <>
-              <span className="batch-label">
-                {t("batch-progress", {
-                  done: progress.done,
-                  total: batch.entries.length,
-                })}
-              </span>
+              <span className="batch-label">{liveBar.label}</span>
               <ProgressBar
-                fraction={progress.fraction}
-                label={t("install-all")}
-                percentClassName="batch-percent"
-              />
-              <button type="button" className="btn btn-ghost" onClick={downloads.cancelAll}>
-                {t("batch-cancel-all")}
-              </button>
-            </>
-          )}
-          {batch.status === "installing" && (
-            <>
-              <span className="batch-label">
-                {t("batch-installing", {
-                  done: installs.installed,
-                  total: batch.installIds.length,
-                })}
-              </span>
-              <ProgressBar
-                fraction={installs.fraction}
+                fraction={liveBar.fraction}
                 label={t("install-all")}
                 percentClassName="batch-percent"
               />

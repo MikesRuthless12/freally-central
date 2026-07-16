@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useCatalog } from "../catalog/loader";
 import type { CatalogApp } from "../catalog/types";
 import { useI18n } from "../i18n";
 import { formatCount } from "../releases/format";
-import { liveRelease } from "../releases/types";
 import { useReleases } from "../releases/useReleases";
-import { useInstalled } from "../install/useInstalled";
-import { compareVersions } from "../install/semver";
+import { useEffectiveInstalled, useInstalled } from "../install/useInstalled";
 import { useDownloads } from "../downloads/useDownloads";
 import type { BatchEntry } from "../downloads/types";
 import { useTheme } from "../theme";
@@ -40,32 +38,9 @@ export function Hub() {
   const selected = apps.find((a) => a.id === selectedId) ?? null;
   const visible = useMemo(() => apps.filter((a) => matchesFilter(a, filter)), [apps, filter]);
 
-  // Confirm session installs from the installer's own record: re-probe
-  // detection each time an install run settles (FC-42). The badge already
-  // flipped optimistically via sessionInstalled; this makes it durable truth.
-  const { installRunsCompleted, sessionInstalled } = downloads;
-  const { refresh: refreshInstalled, supported: detectSupported } = installed;
-  useEffect(() => {
-    if (installRunsCompleted > 0 && detectSupported) refreshInstalled();
-  }, [installRunsCompleted, detectSupported, refreshInstalled]);
-
-  // The install map the cards and detail view read: the real probe, with this
-  // session's completed installs layered on top until the probe reads at least
-  // the version we installed. Honest on both sides — an "installed ✓" here is
-  // either the installer's own record or this session's real exit-0 install.
-  const mergedInstalled = useMemo(() => {
-    if (sessionInstalled.size === 0) return installed.byId;
-    const merged = new Map(installed.byId);
-    for (const id of sessionInstalled) {
-      const live = liveRelease(releases.byId.get(id));
-      if (!live) continue;
-      const probed = merged.get(id);
-      if (probed == null || compareVersions(probed, live.version) < 0) {
-        merged.set(id, live.version);
-      }
-    }
-    return merged;
-  }, [installed.byId, sessionInstalled, releases.byId]);
+  // The install map the cards and detail view read: the probe merged with this
+  // session's real installs (the hook also re-probes when install runs settle).
+  const mergedInstalled = useEffectiveInstalled(installed, releases.byId, downloads);
 
   // Everything Download & install all would fetch: each available app whose
   // release ships an installer for this machine (FC-32). Depends on

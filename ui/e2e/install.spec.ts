@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { installMocks } from "./helpers";
+import { installMocks, PERCENT_RE } from "./helpers";
 
 // Phase 5 (P5.1): the "works without me touching it" guarantee. One click on
 // Download & install all must carry every app through download, verification,
@@ -18,7 +18,7 @@ test("Download & install all runs hands-off to Installed ✓ (FC-40/41/42)", asy
   // The aggregate bar advances with a live two-decimal percent (downloads,
   // then the install stage re-uses the same bar — FC-41)…
   const percent = page.locator(".batch-percent");
-  await expect(percent).toHaveText(/^\d{1,3}[.,]\d{2}\s?%$/);
+  await expect(percent).toHaveText(PERCENT_RE);
   // …the install stage is announced while it runs…
   await expect(page.locator(".batch-label")).toHaveText(/Installing/);
   // …the bar lands on exactly 100.00% (held through the final install beat)…

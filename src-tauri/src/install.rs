@@ -35,7 +35,6 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tauri::ipc::Channel;
 use tauri::State;
-use tokio::io::AsyncReadExt;
 
 use crate::download::{VerifiedDownloads, VerifiedFile};
 
@@ -132,13 +131,11 @@ pub async fn install_apps(
             .map_err(|_| "install registry poisoned".to_string())?;
         if slot.is_some() {
             for request in &requests {
-                emit(
+                failed(
                     &on_event,
-                    InstallEvent::Failed {
-                        id: request.id.clone(),
-                        code: fail::BUSY,
-                        detail: "an install batch is already running".into(),
-                    },
+                    &request.id,
+                    fail::BUSY,
+                    "an install batch is already running",
                 );
             }
             return Ok(());
@@ -182,6 +179,30 @@ fn progress(channel: &Channel<InstallEvent>, id: &str, fraction: f64) {
             fraction,
         },
     );
+}
+
+fn failed(
+    channel: &Channel<InstallEvent>,
+    id: &str,
+    code: &'static str,
+    detail: impl Into<String>,
+) {
+    emit(
+        channel,
+        InstallEvent::Failed {
+            id: id.to_string(),
+            code,
+            detail: detail.into(),
+        },
+    );
+}
+
+fn canceled(channel: &Channel<InstallEvent>, id: &str) {
+    emit(channel, InstallEvent::Canceled { id: id.to_string() });
+}
+
+fn io_fail(e: impl std::fmt::Display) -> Fail {
+    (fail::IO, e.to_string())
 }
 
 /// What a file name says the installer is; how to run it silently per OS.
@@ -304,14 +325,7 @@ async fn run_batch(
     for request in requests {
         match resolve_plan(&request.id, verified) {
             Ok(plan) => plans.push(plan),
-            Err((code, detail)) => emit(
-                on_event,
-                InstallEvent::Failed {
-                    id: request.id.clone(),
-                    code,
-                    detail,
-                },
-            ),
+            Err((code, detail)) => failed(on_event, &request.id, code, detail),
         }
     }
 
@@ -321,7 +335,7 @@ async fn run_batch(
 
     for plan in solo {
         if cancel.load(Ordering::Relaxed) {
-            emit(on_event, InstallEvent::Canceled { id: plan.id });
+            canceled(on_event, &plan.id);
             continue;
         }
         install_one(&plan, cancel, on_event, verified).await;
@@ -349,9 +363,7 @@ async fn preflight(
     );
     progress(on_event, &plan.id, 0.05);
 
-    let actual = sha256_of_file(&plan.file.path)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
+    let actual = sha256_of_file(&plan.file.path).await.map_err(io_fail)?;
     if actual != plan.file.sha256 {
         // The bytes changed since verification — refuse, and make sure neither
         // the file nor its registry entry can be tried again.
@@ -365,12 +377,7 @@ async fn preflight(
     progress(on_event, &plan.id, 0.25);
 
     if cancel.load(Ordering::Relaxed) {
-        emit(
-            on_event,
-            InstallEvent::Canceled {
-                id: plan.id.clone(),
-            },
-        );
+        canceled(on_event, &plan.id);
         return Ok(false);
     }
     Ok(true)
@@ -397,14 +404,7 @@ async fn install_one(
                 },
             );
         }
-        Err((code, detail)) => emit(
-            on_event,
-            InstallEvent::Failed {
-                id: plan.id.clone(),
-                code,
-                detail,
-            },
-        ),
+        Err((code, detail)) => failed(on_event, &plan.id, code, detail),
     }
 }
 
@@ -442,18 +442,12 @@ fn ramp_fraction(base: f64, elapsed: Duration) -> f64 {
     (base + (0.90 - base) * (t / (t + 10.0))).min(0.90)
 }
 
-/// SHA-256 of a file's current on-disk bytes.
+/// SHA-256 of a file's current on-disk bytes (the download engine's own
+/// buffered hash loop — one implementation to keep correct).
 async fn sha256_of_file(path: &Path) -> std::io::Result<String> {
     let mut file = tokio::fs::File::open(path).await?;
     let mut hasher = Sha256::new();
-    let mut buf = vec![0u8; 256 * 1024];
-    loop {
-        let n = file.read(&mut buf).await?;
-        if n == 0 {
-            break;
-        }
-        hasher.update(&buf[..n]);
-    }
+    crate::download::hash_file_into(&mut file, &mut hasher).await?;
     Ok(hex::encode(hasher.finalize()))
 }
 
@@ -485,7 +479,7 @@ async fn run_installer(plan: &Plan, on_event: &Channel<InstallEvent>) -> Result<
     };
     let status = wait_with_ramp(&mut command, std::slice::from_ref(&plan.id), 0.25, on_event)
         .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
+        .map_err(io_fail)?;
     // 3010 = ERROR_SUCCESS_REBOOT_REQUIRED: the install itself succeeded.
     if status.success() || status.code() == Some(3010) {
         Ok(())
@@ -511,9 +505,7 @@ async fn run_installer(plan: &Plan, on_event: &Channel<InstallEvent>) -> Result<
     // Applications, detach. This is exactly the drag-install a user would do
     // by hand — no wizard, no elevation.
     let mount = std::env::temp_dir().join(format!("freally-central-mount-{}", plan.id));
-    tokio::fs::create_dir_all(&mount)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
+    tokio::fs::create_dir_all(&mount).await.map_err(io_fail)?;
 
     let attach = tokio::process::Command::new("hdiutil")
         .args([
@@ -527,7 +519,7 @@ async fn run_installer(plan: &Plan, on_event: &Channel<InstallEvent>) -> Result<
         .arg(&plan.file.path)
         .status()
         .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
+        .map_err(io_fail)?;
     if !attach.success() {
         let _ = tokio::fs::remove_dir_all(&mount).await;
         return Err((
@@ -559,14 +551,8 @@ async fn copy_app_from_mount(
 
     // The bundle inside the dmg (Tauri's dmg layout: one .app at the root).
     let mut app: Option<(PathBuf, std::ffi::OsString)> = None;
-    let mut entries = tokio::fs::read_dir(mount)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?
-    {
+    let mut entries = tokio::fs::read_dir(mount).await.map_err(io_fail)?;
+    while let Some(entry) = entries.next_entry().await.map_err(io_fail)? {
         if entry.file_name().to_string_lossy().ends_with(".app") {
             app = Some((entry.path(), entry.file_name()));
             break;
@@ -577,12 +563,9 @@ async fn copy_app_from_mount(
         "no .app bundle inside the dmg".into(),
     ))?;
 
-    // /Applications first; the user's ~/Applications when it isn't writable.
-    let mut destinations = vec![PathBuf::from("/Applications")];
-    if let Some(home) = std::env::var_os("HOME") {
-        destinations.push(PathBuf::from(home).join("Applications"));
-    }
-    for dest_dir in destinations {
+    // /Applications first; the user's ~/Applications when it isn't writable —
+    // the same probe order detection reads (detect::applications_dirs).
+    for dest_dir in crate::detect::applications_dirs() {
         if tokio::fs::create_dir_all(&dest_dir).await.is_err() {
             continue;
         }
@@ -599,7 +582,7 @@ async fn copy_app_from_mount(
         command.arg(&app_src).arg(&staging);
         let status = wait_with_ramp(&mut command, std::slice::from_ref(&plan.id), 0.40, on_event)
             .await
-            .map_err(|e| (fail::IO, e.to_string()))?;
+            .map_err(io_fail)?;
         if !status.success() {
             let _ = tokio::fs::remove_dir_all(&staging).await;
             continue;
@@ -657,9 +640,7 @@ async fn install_appimage(plan: &Plan, on_event: &Channel<InstallEvent>) -> Resu
 
     let home = std::env::var_os("HOME").ok_or((fail::IO, "HOME is not set".to_string()))?;
     let dir = PathBuf::from(home).join("Applications");
-    tokio::fs::create_dir_all(&dir)
-        .await
-        .map_err(|e| (fail::IO, e.to_string()))?;
+    tokio::fs::create_dir_all(&dir).await.map_err(io_fail)?;
     progress(on_event, &plan.id, 0.50);
 
     // Stage beside the destination, then swap into place: any existing install
@@ -726,20 +707,13 @@ async fn install_group(
     let mut ready: Vec<Plan> = Vec::new();
     for plan in plans {
         if cancel.load(Ordering::Relaxed) {
-            emit(on_event, InstallEvent::Canceled { id: plan.id });
+            canceled(on_event, &plan.id);
             continue;
         }
         match preflight(&plan, cancel, on_event, verified).await {
             Ok(true) => ready.push(plan),
             Ok(false) => {} // canceled — event already emitted
-            Err((code, detail)) => emit(
-                on_event,
-                InstallEvent::Failed {
-                    id: plan.id.clone(),
-                    code,
-                    detail,
-                },
-            ),
+            Err((code, detail)) => failed(on_event, &plan.id, code, detail),
         }
     }
 
@@ -750,12 +724,7 @@ async fn install_group(
         }
         if cancel.load(Ordering::Relaxed) {
             for plan in &subset {
-                emit(
-                    on_event,
-                    InstallEvent::Canceled {
-                        id: plan.id.clone(),
-                    },
-                );
+                canceled(on_event, &plan.id);
             }
             continue;
         }
@@ -782,26 +751,17 @@ async fn install_group(
                     e.to_string()
                 };
                 for plan in &subset {
-                    emit(
-                        on_event,
-                        InstallEvent::Failed {
-                            id: plan.id.clone(),
-                            code: fail::INSTALLER_FAILED,
-                            detail: detail.clone(),
-                        },
-                    );
+                    failed(on_event, &plan.id, fail::INSTALLER_FAILED, detail.clone());
                 }
             }
             // pkexec: 126 = consent dialog dismissed, 127 = not authorized.
             Ok(status) if matches!(status.code(), Some(126) | Some(127)) => {
                 for plan in &subset {
-                    emit(
+                    failed(
                         on_event,
-                        InstallEvent::Failed {
-                            id: plan.id.clone(),
-                            code: fail::ELEVATION_DECLINED,
-                            detail: "administrator authorization was not granted".into(),
-                        },
+                        &plan.id,
+                        fail::ELEVATION_DECLINED,
+                        "administrator authorization was not granted",
                     );
                 }
             }
@@ -816,13 +776,11 @@ async fn install_group(
                             },
                         );
                     } else {
-                        emit(
+                        failed(
                             on_event,
-                            InstallEvent::Failed {
-                                id: plan.id.clone(),
-                                code: fail::INSTALLER_FAILED,
-                                detail: format!("package not installed (group exit {status})"),
-                            },
+                            &plan.id,
+                            fail::INSTALLER_FAILED,
+                            format!("package not installed (group exit {status})"),
                         );
                     }
                 }
@@ -849,14 +807,18 @@ fn package_installed(plan: &Plan) -> bool {
     let mut candidates = vec![plan.id.clone()];
     if let Some((prefix, _)) = plan.file.file_name.split_once('_') {
         let prefix = prefix.to_lowercase();
-        if !candidates.contains(&prefix) {
+        if prefix != plan.id {
             candidates.push(prefix);
         }
     }
 
     for pkg in &candidates {
-        let version = crate::detect::run_version("dpkg-query", &["-W", "-f=${Version}", pkg])
-            .or_else(|| crate::detect::run_version("rpm", &["-q", "--qf", "%{VERSION}", pkg]));
+        // Ask only the manager that ran this package's format — a deb never
+        // lands in the rpm database, so the other probe is a wasted spawn.
+        let version = match plan.kind {
+            InstallerKind::Deb => crate::detect::dpkg_version(pkg),
+            _ => crate::detect::rpm_version(pkg),
+        };
         if let Some(version) = version {
             return match &expected {
                 Some(expected) => version == *expected,
@@ -867,25 +829,17 @@ fn package_installed(plan: &Plan) -> bool {
     false
 }
 
-/// Non-Linux stub: resolve_plan already refused deb/rpm off-Linux, so the
-/// group is always empty here — this exists so run_batch compiles everywhere.
+/// Non-Linux stub: resolve_plan's supported_here() already refused deb/rpm off
+/// Linux, so the group is always empty — this exists so run_batch compiles
+/// everywhere.
 #[cfg(not(target_os = "linux"))]
 async fn install_group(
     plans: Vec<Plan>,
     _cancel: &AtomicBool,
-    on_event: &Channel<InstallEvent>,
+    _on_event: &Channel<InstallEvent>,
     _verified: &VerifiedDownloads,
 ) {
-    for plan in plans {
-        emit(
-            on_event,
-            InstallEvent::Failed {
-                id: plan.id,
-                code: fail::UNSUPPORTED_INSTALLER,
-                detail: "package installs are Linux-only".into(),
-            },
-        );
-    }
+    debug_assert!(plans.is_empty(), "deb/rpm plans are refused off-Linux");
 }
 
 // --- Fallback (unsupported targets) ------------------------------------------------
@@ -935,66 +889,53 @@ fn safe_token(value: &str, allow_space: bool) -> Result<String, String> {
 
 #[cfg(windows)]
 fn launch(_id: &str, name: &str) -> Result<(), String> {
-    use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
-    use winreg::RegKey;
-
-    // The same uninstall entries detection reads: the exe path comes from what
-    // the installer recorded (InstallLocation, else DisplayIcon), never from a
-    // guess. Both registry views, both hives — like detect.rs.
-    const UNINSTALL_PATHS: [&str; 2] = [
-        r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-        r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
-    ];
-    for hive in [HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER] {
-        let root = RegKey::predef(hive);
-        for path in UNINSTALL_PATHS {
-            let Ok(uninstall) = root.open_subkey(path) else {
-                continue;
-            };
-            for sub in uninstall.enum_keys().flatten() {
-                let Ok(app) = uninstall.open_subkey(&sub) else {
-                    continue;
-                };
-                let Ok(display_name) = app.get_value::<String, _>("DisplayName") else {
-                    continue;
-                };
-                if display_name.trim() != name {
-                    continue;
-                }
-                if let Ok(location) = app.get_value::<String, _>("InstallLocation") {
-                    let exe = Path::new(location.trim()).join(format!("{name}.exe"));
-                    if exe.is_file() {
-                        return spawn_detached(&exe);
-                    }
-                }
-                if let Ok(icon) = app.get_value::<String, _>("DisplayIcon") {
-                    // DisplayIcon may carry a ",<index>" suffix (the resource
-                    // index can be negative, e.g. ",-1") and quotes.
-                    let cleaned = icon.trim().trim_matches('"');
-                    let cleaned = match cleaned.rsplit_once(',') {
-                        Some((head, index))
-                            if {
-                                let digits = index.trim().strip_prefix('-').unwrap_or(index.trim());
-                                !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit())
-                            } =>
-                        {
-                            head
-                        }
-                        _ => cleaned,
-                    };
-                    let exe = Path::new(cleaned.trim().trim_matches('"'));
-                    if exe
-                        .extension()
-                        .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
-                        && exe.is_file()
-                    {
-                        return spawn_detached(exe);
-                    }
-                }
+    // The same uninstall entries detection reads (one shared walk — the badge
+    // and the Open button can never drift apart): the exe path comes from what
+    // the installer recorded (InstallLocation, else DisplayIcon), never a guess.
+    let mut outcome: Option<Result<(), String>> = None;
+    crate::detect::visit_uninstall_entries(|app, display_name| {
+        if display_name != name {
+            return true;
+        }
+        if let Ok(location) = app.get_value::<String, _>("InstallLocation") {
+            let exe = Path::new(location.trim()).join(format!("{name}.exe"));
+            if exe.is_file() {
+                outcome = Some(spawn_detached(&exe));
+                return false;
             }
         }
-    }
-    Err(format!("{name} is not installed"))
+        if let Ok(icon) = app.get_value::<String, _>("DisplayIcon") {
+            if let Some(exe) = display_icon_exe(&icon) {
+                outcome = Some(spawn_detached(&exe));
+                return false;
+            }
+        }
+        true
+    });
+    outcome.unwrap_or_else(|| Err(format!("{name} is not installed")))
+}
+
+/// The existing executable a DisplayIcon value points at, if any: strips
+/// quotes and a ",<index>" suffix (the resource index can be negative, ",-1").
+#[cfg(windows)]
+fn display_icon_exe(icon: &str) -> Option<std::path::PathBuf> {
+    let cleaned = icon.trim().trim_matches('"');
+    let cleaned = match cleaned.rsplit_once(',') {
+        Some((head, index))
+            if {
+                let digits = index.trim().strip_prefix('-').unwrap_or(index.trim());
+                !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit())
+            } =>
+        {
+            head
+        }
+        _ => cleaned,
+    };
+    let exe = Path::new(cleaned.trim().trim_matches('"'));
+    (exe.extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
+        && exe.is_file())
+    .then(|| exe.to_path_buf())
 }
 
 #[cfg(windows)]
@@ -1024,23 +965,18 @@ fn launch(_id: &str, name: &str) -> Result<(), String> {
 #[cfg(target_os = "linux")]
 fn launch(id: &str, name: &str) -> Result<(), String> {
     // Package-managed install: the binary is the package name (Tauri's deb/rpm
-    // layout). Spawn a name only after dpkg/rpm confirm it IS an installed
-    // package — a manifest naming some random binary is refused here.
-    let derived = name.to_lowercase().replace(' ', "-");
-    let mut candidates = vec![derived];
-    if !candidates.iter().any(|c| c == id) {
-        candidates.push(id.to_string());
-    }
-    for pkg in &candidates {
-        let installed = crate::detect::run_version("dpkg-query", &["-W", "-f=${Version}", pkg])
-            .is_some()
-            || crate::detect::run_version("rpm", &["-q", "--qf", "%{VERSION}", pkg]).is_some();
-        if installed && std::process::Command::new(pkg).spawn().is_ok() {
+    // layout, the same candidates detection probes). Spawn a name only after
+    // dpkg/rpm confirm it IS an installed package — a manifest naming some
+    // random binary is refused here.
+    for pkg in crate::detect::package_candidates(name, id) {
+        let installed = crate::detect::dpkg_version(&pkg).is_some()
+            || crate::detect::rpm_version(&pkg).is_some();
+        if installed && std::process::Command::new(&pkg).spawn().is_ok() {
             return Ok(());
         }
     }
     // AppImage install: the exact file detection would report.
-    if let Some(appimage) = crate::detect::find_appimage(name, id) {
+    if let Some((appimage, _)) = crate::detect::find_appimage(name, id) {
         if std::process::Command::new(&appimage).spawn().is_ok() {
             return Ok(());
         }

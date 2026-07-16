@@ -82,10 +82,8 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
     if (downloads.supported && asset) {
       // The button's label is the consent: "Install"/"Update" run the whole
       // hands-off flow (FC-40); a plain "Download" (status unknown) or
-      // "Re-download" only fetches the verified installer. A file already
-      // verified on disk installs directly — no needless second download.
+      // "Re-download" only fetches the verified installer.
       if (!status || action === "redownload") downloads.start(app.id, asset);
-      else if (isInstallReady(download)) downloads.install(app.id);
       else downloads.installFlow(app.id, asset);
     } else if (downloadUrl) {
       void openExternal(downloadUrl);
@@ -95,6 +93,25 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
     setOpenFailed(false);
     launchApp(app.id, app.name).catch(() => setOpenFailed(true));
   };
+  // The one honest terminal note per phase (tone + localized message).
+  const note = (() => {
+    switch (download?.phase) {
+      case "done":
+        return { tone: "ok", key: download.checksumVerified ? "dl-done-verified" : "dl-done-size-only" };
+      case "installed":
+        return { tone: "ok", key: "install-done" };
+      case "installFailed":
+        return { tone: "error", key: installFailureMessageKey(download.code) };
+      case "installCanceled":
+        return { tone: "", key: "install-canceled" };
+      case "failed":
+        return { tone: "error", key: failureMessageKey(download.code) };
+      case "canceled":
+        return { tone: "", key: "dl-canceled" };
+      default:
+        return null;
+    }
+  })();
   return (
     <section className="detail">
       <button type="button" className="btn btn-ghost detail-back" onClick={onBack}>
@@ -234,48 +251,28 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
               />
             </>
           )}
-          {download.phase === "done" && (
-            <p className="detail-download-note detail-download-note--ok">
-              {t(download.checksumVerified ? "dl-done-verified" : "dl-done-size-only")}
+          {note && (
+            <p
+              className={`detail-download-note${
+                note.tone ? ` detail-download-note--${note.tone}` : ""
+              }`}
+            >
+              {t(note.key)}
             </p>
-          )}
-          {download.phase === "installed" && (
-            <p className="detail-download-note detail-download-note--ok">{t("install-done")}</p>
-          )}
-          {download.phase === "installFailed" && (
-            <p className="detail-download-note detail-download-note--error">
-              {t(installFailureMessageKey(download.code))}
-            </p>
-          )}
-          {download.phase === "installCanceled" && (
-            <p className="detail-download-note">{t("install-canceled")}</p>
           )}
           {/* The verified installer is still on disk after a failed or canceled
               install — keep it reachable so the user can always run it by hand. */}
-          {(download.phase === "done" ||
-            download.phase === "installFailed" ||
-            download.phase === "installCanceled") &&
-            download.path && (
-              <>
-                <span className="detail-download-file">
-                  {download.path.split(/[\\/]/).pop()}
-                </span>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => void revealInFolder(download.path)}
-                >
-                  {t("dl-show-in-folder")}
-                </button>
-              </>
-            )}
-          {download.phase === "failed" && (
-            <p className="detail-download-note detail-download-note--error">
-              {t(failureMessageKey(download.code))}
-            </p>
-          )}
-          {download.phase === "canceled" && (
-            <p className="detail-download-note">{t("dl-canceled")}</p>
+          {isInstallReady(download) && download.path && (
+            <>
+              <span className="detail-download-file">{download.path.split(/[\\/]/).pop()}</span>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => void revealInFolder(download.path)}
+              >
+                {t("dl-show-in-folder")}
+              </button>
+            </>
           )}
         </div>
       )}

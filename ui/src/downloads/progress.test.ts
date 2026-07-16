@@ -195,7 +195,6 @@ describe("installProgress (FC-41)", () => {
     );
     expect(progress.fraction).toBeCloseTo(0.25);
     expect(progress.installed).toBe(0);
-    expect(progress.finished).toBe(false);
   });
 
   it("lands on exactly 100% and counts outcomes honestly", () => {
@@ -211,11 +210,9 @@ describe("installProgress (FC-41)", () => {
     expect(progress.installed).toBe(1);
     expect(progress.failed).toBe(1);
     expect(progress.canceled).toBe(1);
-    expect(progress.finished).toBe(true);
   });
 
-  it("an empty stage is never 'finished'", () => {
-    expect(installProgress([], states({})).finished).toBe(false);
+  it("an empty stage reports no progress", () => {
     expect(installProgress([], states({})).fraction).toBe(0);
   });
 });

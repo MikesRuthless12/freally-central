@@ -15,6 +15,7 @@ import {
   INSTALL_FAIL_CODES,
   type AppDownloadState,
   type BatchEntry,
+  type DownloadedFile,
   type DownloadEvent,
   type DownloadFailCode,
   type InstallEvent,
@@ -40,18 +41,17 @@ export interface BatchState {
 }
 
 export interface BatchSummary {
-  entriesTotal: number;
   downloadsFailed: number;
   /** Everything that neither finished nor failed when the batch settled —
    *  including queued entries a Cancel all kept from ever starting. */
   downloadsCanceled: number;
-  installTotal: number;
   installed: number;
   installsFailed: number;
   installsCanceled: number;
 }
 
-/** The batch's outcome counts as they stand right now (frozen at settle). */
+/** The batch's outcome counts as they stand right now (frozen at settle).
+ *  Totals live on the batch itself (entries.length / installIds.length). */
 function summarizeBatch(
   entries: BatchEntry[],
   installIds: string[],
@@ -60,10 +60,8 @@ function summarizeBatch(
   const downloads = batchProgress(entries, states);
   const installs = installProgress(installIds, states);
   return {
-    entriesTotal: entries.length,
     downloadsFailed: downloads.failed,
     downloadsCanceled: entries.length - downloads.done - downloads.failed,
-    installTotal: installIds.length,
     installed: installs.installed,
     installsFailed: installs.failed,
     installsCanceled: installs.canceled,
@@ -81,10 +79,9 @@ export interface DownloadsApi {
   start(appId: string, asset: InstallerAsset): void;
   /** Cancel one app's running download. */
   cancel(appId: string): void;
-  /** Download (if needed) then silently install one app (FC-40). */
+  /** Silently install one app (FC-40), downloading first only when no
+   *  verified file is already on disk. */
   installFlow(appId: string, asset: InstallerAsset): void;
-  /** Silently install an app whose verified download already finished. */
-  install(appId: string): void;
   /** Queue every entry with bounded concurrency, then hand the verified set
    *  straight to the silent installer — Download & install all (FC-32+FC-40). */
   startAll(entries: BatchEntry[]): void;
@@ -99,18 +96,15 @@ export interface DownloadsApi {
   installRunsCompleted: number;
 }
 
-/** Narrow an IPC code string to the typed set ("unknown" for anything else). */
-function normalizeFailCode(code: string): DownloadFailCode {
-  return (DOWNLOAD_FAIL_CODES as readonly string[]).includes(code)
-    ? (code as DownloadFailCode)
-    : "unknown";
+/** A narrowing function from IPC code strings to a typed set that includes
+ *  "unknown" — anything unrecognized maps there. */
+function codeNormalizer<T extends string>(codes: readonly T[]): (code: string) => T {
+  return (code) =>
+    (codes as readonly string[]).includes(code) ? (code as T) : ("unknown" as T);
 }
 
-function normalizeInstallFailCode(code: string): InstallFailCode {
-  return (INSTALL_FAIL_CODES as readonly string[]).includes(code)
-    ? (code as InstallFailCode)
-    : "unknown";
-}
+const normalizeFailCode = codeNormalizer<DownloadFailCode>(DOWNLOAD_FAIL_CODES);
+const normalizeInstallFailCode = codeNormalizer<InstallFailCode>(INSTALL_FAIL_CODES);
 
 /** The real bytes a state has accounted for (0 when nothing transferred). */
 function receivedOf(state: AppDownloadState | undefined): number {
@@ -153,23 +147,13 @@ function reduceEvent(
 }
 
 /** The finished download every install phase carries forward (the file stays
- *  on disk and the panels keep offering it whatever the install outcome). */
-function installBase(
-  previous: AppDownloadState | undefined,
-): { path: string; checksumVerified: boolean } {
-  switch (previous?.phase) {
-    case "done":
-    case "waitingInstall":
-    case "installing":
-    case "installed":
-    case "installFailed":
-    case "installCanceled":
-      return { path: previous.path, checksumVerified: previous.checksumVerified };
-    default:
-      // An install event with no download behind it (e.g. a "notDownloaded"
-      // refusal) — there is no file to keep offering.
-      return { path: "", checksumVerified: false };
-  }
+ *  on disk and the panels keep offering it whatever the install outcome). An
+ *  install event with no download behind it (e.g. a "notDownloaded" refusal)
+ *  has no file to keep offering. */
+function installBase(previous: AppDownloadState | undefined): DownloadedFile {
+  return previous && "path" in previous
+    ? { path: previous.path, checksumVerified: previous.checksumVerified }
+    : { path: "", checksumVerified: false };
 }
 
 /** Map one install event onto the app's UI state (returning undefined = keep). */
@@ -373,15 +357,14 @@ export function useDownloads(): DownloadsApi {
     [doInstallRun],
   );
 
-  const install = useCallback(
-    (appId: string) => {
-      void runInstalls([appId]);
-    },
-    [runInstalls],
-  );
-
   const installFlow = useCallback(
     (appId: string, asset: InstallerAsset) => {
+      // A file already verified on disk installs directly — no needless second
+      // download. (Store policy, so no caller has to pick the right method.)
+      if (isInstallReady(byIdRef.current.get(appId))) {
+        void runInstalls([appId]);
+        return;
+      }
       void runOne(appId, asset).then((terminal) => {
         // Only a verified, completed download continues into the silent
         // install — a failed or canceled one already told its own story.
@@ -473,7 +456,6 @@ export function useDownloads(): DownloadsApi {
       start,
       cancel,
       installFlow,
-      install,
       startAll,
       cancelAll,
       batch,
@@ -487,7 +469,6 @@ export function useDownloads(): DownloadsApi {
       start,
       cancel,
       installFlow,
-      install,
       startAll,
       cancelAll,
       batch,

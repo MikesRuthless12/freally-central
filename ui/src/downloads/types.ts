@@ -86,26 +86,30 @@ export const INSTALL_FAIL_CODES = [
 ] as const;
 export type InstallFailCode = (typeof INSTALL_FAIL_CODES)[number];
 
+/// The finished download that "done" and every install phase carry: the file
+/// is on disk and the panels keep offering it (Show in folder, retry Install)
+/// whatever the install outcome.
+export interface DownloadedFile {
+  path: string;
+  checksumVerified: boolean;
+}
+
 /// One app's download-and-install as the UI tracks it. "verifying" keeps the
 /// byte counts so the bar holds at 100% while the checksum runs; "done" records
 /// what was actually verified (honest: checksum only when a digest was
 /// published). Failed/canceled keep the real bytes received so aggregate
 /// progress stays monotonic — a terminal entry freezes at what it transferred.
-///
-/// The install phases (Phase 5) all carry the finished download's `path` and
-/// `checksumVerified`, because the file is still on disk and the panels keep
-/// offering it (Show in folder, retry Install) whatever the install outcome.
 export type AppDownloadState =
   | { phase: "downloading"; received: number; total: number }
   | { phase: "verifying"; received: number; total: number }
-  | { phase: "done"; path: string; checksumVerified: boolean }
+  | ({ phase: "done" } & DownloadedFile)
   | { phase: "failed"; code: DownloadFailCode; received: number }
   | { phase: "canceled"; received: number }
-  | { phase: "waitingInstall"; path: string; checksumVerified: boolean }
-  | { phase: "installing"; fraction: number; path: string; checksumVerified: boolean }
-  | { phase: "installed"; path: string; checksumVerified: boolean }
-  | { phase: "installFailed"; code: InstallFailCode; path: string; checksumVerified: boolean }
-  | { phase: "installCanceled"; path: string; checksumVerified: boolean };
+  | ({ phase: "waitingInstall" } & DownloadedFile)
+  | ({ phase: "installing"; fraction: number } & DownloadedFile)
+  | ({ phase: "installed" } & DownloadedFile)
+  | ({ phase: "installFailed"; code: InstallFailCode } & DownloadedFile)
+  | ({ phase: "installCanceled" } & DownloadedFile);
 
 /// An entry in the Download All queue: the app id plus its resolved installer.
 export interface BatchEntry {

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { installMocks } from "./helpers";
+import { installMocks, PERCENT_RE } from "./helpers";
 
 // Phase 4 flows: the download engine, the live two-decimal percent, and the
 // batch with failure isolation — driven headless with the catalog, the GitHub
@@ -16,7 +16,7 @@ test("a download streams to a verified 100.00% (FC-30/31)", async ({ page }) => 
 
   // The live percent is always two decimals while streaming…
   const percent = page.locator(".detail-download-percent");
-  await expect(percent).toHaveText(/^\d{1,3}[.,]\d{2}\s?%$/);
+  await expect(percent).toHaveText(PERCENT_RE);
   // …lands on exactly 100.00% (held through verification)…
   await expect(percent).toHaveText("100.00%");
   await expect(page.locator(".detail-download-phase")).toHaveText("Verifying…");
@@ -47,7 +47,7 @@ test("the batch fetches every app; one download failure isolates (FC-32)", async
   await installAll.click();
 
   // The aggregate bar shows a live two-decimal percent while the batch runs.
-  await expect(page.locator(".batch-percent")).toHaveText(/^\d{1,3}[.,]\d{2}\s?%$/);
+  await expect(page.locator(".batch-percent")).toHaveText(PERCENT_RE);
 
   // The batch finishes despite the forced failure, and reports it honestly —
   // the failed download also never reaches the install stage.
