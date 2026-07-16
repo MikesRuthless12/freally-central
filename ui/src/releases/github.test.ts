@@ -68,6 +68,56 @@ describe("normalizeRelease", () => {
     expect(info.perOs).toEqual({});
     expect(info.version).toBe("0.1.0");
   });
+
+  it("captures per-OS installer assets for the download engine (FC-30)", () => {
+    const payload = releasePayload();
+    // GitHub publishes exact sizes (and digests, when available) per asset.
+    payload.assets = payload.assets.map((a) => ({
+      ...a,
+      size: 1000,
+      digest: a.name.endsWith(".exe") ? "sha256:" + "b".repeat(64) : undefined,
+    })) as typeof payload.assets;
+    const info = normalizeRelease(payload, ASSETS);
+    expect(info.installers.windows?.map((a) => a.name)).toEqual([
+      "App_1.2.3_x64-setup.exe",
+      "App_1.2.3.msi",
+    ]);
+    expect(info.installers.windows?.[0]).toEqual({
+      name: "App_1.2.3_x64-setup.exe",
+      url: "https://x/setup.exe",
+      size: 1000,
+      digest: "sha256:" + "b".repeat(64),
+    });
+    // No digest published → null (the engine then verifies size only).
+    expect(info.installers.windows?.[1].digest).toBeNull();
+    // A digest the engine can't verify (future sha512, malformed) degrades to
+    // size-only the same way — it must never hard-fail the download.
+    const odd = normalizeRelease(
+      {
+        tag_name: "v1.0.0",
+        assets: [
+          { name: "App.exe", browser_download_url: "u", download_count: 1, size: 9, digest: "sha512:" + "c".repeat(128) },
+        ],
+      },
+      ASSETS,
+    );
+    expect(odd.installers.windows?.[0].digest).toBeNull();
+    // latest.json never becomes an installer candidate.
+    const all = Object.values(info.installers).flat();
+    expect(all.some((a) => a.name === "latest.json")).toBe(false);
+  });
+
+  it("an asset without a usable URL or size is counted but not downloadable", () => {
+    const info = normalizeRelease(
+      {
+        tag_name: "v1.0.0",
+        assets: [{ name: "App.exe", download_count: 10 }], // no url/size
+      },
+      ASSETS,
+    );
+    expect(info.perOs.windows).toBe(10); // the honest count still shows
+    expect(info.installers.windows).toEqual([]); // but nothing to stream
+  });
 });
 
 describe("loadRelease", () => {

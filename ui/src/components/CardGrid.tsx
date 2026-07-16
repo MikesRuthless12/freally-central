@@ -1,6 +1,7 @@
 import { useT } from "../i18n";
 import type { CatalogApp } from "../catalog/types";
 import type { ReleaseState } from "../releases/types";
+import type { AppDownloadState } from "../downloads/types";
 import { ProductCard } from "./ProductCard";
 
 interface CardGridProps {
@@ -8,10 +9,12 @@ interface CardGridProps {
   releases: Map<string, ReleaseState>;
   /** Detected installed version per app id (absent key = not probed). */
   installed: Map<string, string | null>;
+  /** Download state per app id (absent key = no download this session). */
+  downloads: ReadonlyMap<string, AppDownloadState>;
   onOpen: (app: CatalogApp) => void;
 }
 
-export function CardGrid({ apps, releases, installed, onOpen }: CardGridProps) {
+export function CardGrid({ apps, releases, installed, downloads, onOpen }: CardGridProps) {
   const t = useT();
   if (apps.length === 0) {
     return <p className="grid-empty">{t("grid-empty")}</p>;
@@ -24,6 +27,7 @@ export function CardGrid({ apps, releases, installed, onOpen }: CardGridProps) {
           app={app}
           release={releases.get(app.id)}
           installedVersion={installed.get(app.id)}
+          download={downloads.get(app.id)}
           onOpen={onOpen}
         />
       ))}

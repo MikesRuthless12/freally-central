@@ -21,6 +21,31 @@ export function formatCount(locale: string, count: number): string {
   }
 }
 
+const percentFormatters = new Map<string, Intl.NumberFormat>();
+function percentFormatter(locale: string): Intl.NumberFormat {
+  let formatter = percentFormatters.get(locale);
+  if (!formatter) {
+    // FC-31's precise percent: always exactly two decimals ("38.92%").
+    formatter = new Intl.NumberFormat(locale, {
+      style: "percent",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    percentFormatters.set(locale, formatter);
+  }
+  return formatter;
+}
+
+// Formats a download-progress fraction (0.3892 → "38.92%"). Callers pass real
+// bytes-over-total fractions (see downloads/progress.ts) — already in [0, 1].
+export function formatPercent(locale: string, value: number): string {
+  try {
+    return percentFormatter(locale).format(value);
+  } catch {
+    return `${(value * 100).toFixed(2)}%`;
+  }
+}
+
 const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 function dateFormatter(locale: string): Intl.DateTimeFormat {
   let formatter = dateFormatters.get(locale);

@@ -5,12 +5,14 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **Phase 3 complete** — on top of the Phase 0–2 pipeline, shell, catalog grid, and live
-> release data, Central now **detects what's installed** on the machine (per-OS) and badges each
-> card **Installed ✓ / Update available / Not installed** (semver-aware), with the detail view's
-> primary action reflecting status (**Install / Update / Re-download**). Next up is Phase 4
-> (downloads + the live progress bar). See `Freally-Central-Feature-Roadmap.md` for the plan and
-> `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
+> Status: **Phase 4 complete** — on top of the Phase 0–3 pipeline, shell, catalog grid, live
+> release data, and install detection, Central now **downloads installers itself**: a native
+> engine streams the right per-OS installer with a **precise two-decimal percent** from real
+> bytes, verifies **size + SHA-256** before the file is ever kept, resumes interrupted
+> transfers, and **Download All** queues every app with bounded concurrency, an aggregate bar,
+> and per-app failure isolation. Next up is Phase 5 (hands-off silent installation). See
+> `Freally-Central-Feature-Roadmap.md` for the plan and `Build-Prompts-Guide.md` for the
+> phase-by-phase build prompts.
 
 ## What it is
 

@@ -104,19 +104,6 @@ button {
   gap: 10px;
 }
 
-.search {
-  width: min(320px, 40vw);
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  outline: none;
-}
-.search:focus {
-  border-color: var(--accent);
-}
-
 .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -142,10 +129,13 @@ button {
 }
 
 .toolbar {
+  margin-bottom: 18px;
+}
+
+.toolbar-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  margin-bottom: 18px;
 }
 
 .download-all {
@@ -178,6 +168,90 @@ button {
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--text);
+}
+
+/* ---------- Downloads: live progress (Phase 4) ---------- */
+.progress {
+  flex: 1;
+  min-width: 60px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+}
+
+/* Download All: the aggregate bar + status under the toolbar. */
+.batch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.batch-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.batch-percent {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* Per-card mini bar while that app downloads. */
+.card-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.card-progress-percent {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Detail view: the live download panel. */
+.detail-download {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.detail-download-phase {
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.detail-download-percent {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.detail-download-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.detail-download-file {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40%;
+}
+.detail-download-note--ok {
+  color: var(--ok);
+}
+.detail-download-note--error {
+  color: var(--err);
 }
 
 .offline-note {

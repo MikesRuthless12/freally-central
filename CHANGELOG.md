@@ -3,6 +3,15 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## 0.4.0 — Phase 4: downloads, the live progress bar & Download All
+
+- A native **download engine**: each app's right-for-this-machine installer streams from its GitHub release to a temp folder with a **precise two-decimal percent** (e.g. `38.92%`) computed from real bytes received against the API-published size — landing on exactly **100.00%** at completion. Interrupted downloads resume where they left off.
+- **Verification before use**: the byte count must match the published size exactly, and when GitHub publishes a SHA-256 digest for the asset the streamed hash must match it — a short, oversized, or corrupted download is refused and discarded, never kept as an installer. Only `https://github.com/<owner>/<repo>/releases/download/…` URLs are ever fetched.
+- A **live progress bar** on the card and the detail view, bound 0 → 100% to the download and held through verification, with **Cancel** and **Retry** (retry resumes the partial file).
+- **Download All**: one click queues every available app's installer for this OS with bounded concurrency, an aggregate progress bar plus per-app bars, **Cancel all**, and honest results — one failed download never stalls the rest, and the summary reports exactly what failed.
+- The top-bar **search box was removed** (seven apps don't need one); the Type filter stays.
+- All new UI strings localized across the 18 locales; i18n parity lint stays green.
+
 ## 0.3.0 — Phase 3: install detection & status badges
 
 - Installed-version detection per OS — Windows uninstall registry keys, macOS `/Applications/*.app` `Info.plist`, and Linux dpkg/rpm packages (with an AppImage-filename fallback) — mapped to each catalog app. Detection runs off the UI thread and is cached with a manual **Refresh**.

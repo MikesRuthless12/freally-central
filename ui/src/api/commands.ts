@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import type { BuildInfo, ReleaseNotes } from "./types";
 
 // Build metadata for the About panel (from src-tauri/src/commands.rs).
@@ -21,6 +21,19 @@ export function releaseNotes(): Promise<ReleaseNotes> {
  * and the GitHub API, and restricting the scheme keeps a stray `file:`/other
  * link from being handed to the OS opener (defense in depth).
  */
+/**
+ * Reveal a downloaded file in the OS file manager (Explorer/Finder/…), so the
+ * user can reach the verified installer until Phase 5 runs it hands-off.
+ * No-ops outside the Tauri shell.
+ */
+export async function revealInFolder(path: string): Promise<void> {
+  try {
+    await revealItemInDir(path);
+  } catch {
+    /* plain browser or reveal unsupported — nothing to do */
+  }
+}
+
 export async function openExternal(url: string): Promise<void> {
   let parsed: URL;
   try {

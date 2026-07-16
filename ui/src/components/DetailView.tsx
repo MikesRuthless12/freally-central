@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { openExternal } from "../api/commands";
+import { openExternal, revealInFolder } from "../api/commands";
 import { useI18n } from "../i18n";
 import { appDescription, appFeatures, appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
@@ -7,8 +7,12 @@ import { formatCount, formatDate } from "../releases/format";
 import { liveRelease, type OsKey, type ReleaseState } from "../releases/types";
 import { downloadAction, statusFor } from "../install/status";
 import type { DownloadAction } from "../install/types";
+import type { DownloadsApi } from "../downloads/useDownloads";
+import { isActive, isCancelable, stateFraction } from "../downloads/progress";
+import { failureMessageKey } from "../downloads/messages";
 import { AppIcon } from "./AppIcon";
 import { ChangelogView } from "./ChangelogView";
+import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
 
 interface DetailViewProps {
@@ -16,6 +20,7 @@ interface DetailViewProps {
   release?: ReleaseState;
   /** Detected installed version: string, null (probed & absent), or undefined (not probed). */
   installedVersion?: string | null;
+  downloads: DownloadsApi;
   onBack: () => void;
 }
 
@@ -33,7 +38,7 @@ const ACTION_KEY: Record<DownloadAction, string> = {
   redownload: "action-redownload",
 };
 
-export function DetailView({ app, release, installedVersion, onBack }: DetailViewProps) {
+export function DetailView({ app, release, installedVersion, downloads, onBack }: DetailViewProps) {
   const { t, locale } = useI18n();
   const [changelogOpen, setChangelogOpen] = useState(false);
   const soon = app.status === "coming-soon";
@@ -44,17 +49,30 @@ export function DetailView({ app, release, installedVersion, onBack }: DetailVie
   const releasedDate = live ? formatDate(locale, live.publishedAt) : null;
   // Install status (FC-21) — null when detection produced no reading for this app.
   const status = statusFor(installedVersion, live?.version);
-  // Where the download button sends the user: the real installer source — the
-  // release page, else the app's site, else its GitHub releases. The silent
-  // download/install engine itself lands in Phase 4/5; here the button reflects
-  // status and routes to the verified download.
+  // The real download (FC-30): inside the shell the engine streams and verifies
+  // this machine's installer with live progress. Outside it (plain browser), the
+  // button falls back to opening the release page — the same verified source.
+  const asset = downloads.installerFor(app, release);
+  const download = downloads.byId.get(app.id);
+  const engineReady = downloads.supported && asset !== null;
+  const downloading = isActive(download);
+  // isCancelable also covers an orphaned backend download ("alreadyDownloading"
+  // after a reload) — Cancel must reach it or the user is locked out.
+  const cancelable = isCancelable(download);
   const downloadUrl =
     live?.htmlUrl ?? app.site ?? (app.repo ? `https://github.com/${app.repo}/releases` : undefined);
   // The primary download CTA shows for any available app with a source, whether
   // or not detection has resolved — a failed or still-loading probe must never
   // hide it. Its label reflects detected status when known, else a plain Download.
-  const showDownload = !soon && downloadUrl !== undefined;
+  const showDownload = !soon && (downloadUrl !== undefined || engineReady);
   const downloadLabelKey = status ? ACTION_KEY[downloadAction(status)] : "card-download";
+  const startDownload = () => {
+    if (downloads.supported && asset) {
+      downloads.start(app.id, asset);
+    } else if (downloadUrl) {
+      void openExternal(downloadUrl);
+    }
+  };
   return (
     <section className="detail">
       <button type="button" className="btn btn-ghost detail-back" onClick={onBack}>
@@ -139,14 +157,65 @@ export function DetailView({ app, release, installedVersion, onBack }: DetailVie
               {t("detail-visit-site")}
             </button>
           )}
-          {!soon && downloadUrl && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => void openExternal(downloadUrl)}
-            >
-              {t(downloadLabelKey)}
+          {showDownload && !downloading && (
+            <button type="button" className="btn btn-primary" onClick={startDownload}>
+              {t(
+                download?.phase === "failed" || download?.phase === "canceled"
+                  ? "dl-retry"
+                  : downloadLabelKey,
+              )}
             </button>
+          )}
+          {cancelable && (
+            <button type="button" className="btn" onClick={() => downloads.cancel(app.id)}>
+              {t("dl-cancel")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* The live download panel (FC-31): a real-bytes bar with the two-decimal
+          percent while streaming/verifying, then an honest terminal note. */}
+      {download && (
+        <div className="detail-download">
+          {downloading && (
+            <>
+              <span className="detail-download-phase">
+                {t(download.phase === "verifying" ? "dl-verifying" : "dl-downloading")}
+              </span>
+              <ProgressBar
+                fraction={stateFraction(download)}
+                label={t("dl-progress-label", { name: app.name })}
+                percentClassName="detail-download-percent"
+              />
+            </>
+          )}
+          {download.phase === "done" && (
+            <>
+              <p className="detail-download-note detail-download-note--ok">
+                {t(download.checksumVerified ? "dl-done-verified" : "dl-done-size-only")}
+              </p>
+              {/* The verified installer is real and reachable — show which file
+                  and open its folder (Phase 5 will run it hands-off). */}
+              <span className="detail-download-file">
+                {download.path.split(/[\\/]/).pop()}
+              </span>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => void revealInFolder(download.path)}
+              >
+                {t("dl-show-in-folder")}
+              </button>
+            </>
+          )}
+          {download.phase === "failed" && (
+            <p className="detail-download-note detail-download-note--error">
+              {t(failureMessageKey(download.code))}
+            </p>
+          )}
+          {download.phase === "canceled" && (
+            <p className="detail-download-note">{t("dl-canceled")}</p>
           )}
         </div>
       )}

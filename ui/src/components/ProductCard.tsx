@@ -3,7 +3,10 @@ import { appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
 import { liveRelease, type ReleaseState } from "../releases/types";
 import { statusFor } from "../install/status";
+import type { AppDownloadState } from "../downloads/types";
+import { isActive, stateFraction } from "../downloads/progress";
 import { AppIcon } from "./AppIcon";
+import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
 
 interface ProductCardProps {
@@ -11,10 +14,12 @@ interface ProductCardProps {
   release?: ReleaseState;
   /** Detected installed version: string, null (probed & absent), or undefined (not probed). */
   installedVersion?: string | null;
+  /** This app's download, when one ran this session (drives the card's bar). */
+  download?: AppDownloadState;
   onOpen: (app: CatalogApp) => void;
 }
 
-export function ProductCard({ app, release, installedVersion, onOpen }: ProductCardProps) {
+export function ProductCard({ app, release, installedVersion, download, onOpen }: ProductCardProps) {
   const t = useT();
   const soon = app.status === "coming-soon";
   const tagline = appTagline(t, app);
@@ -22,6 +27,8 @@ export function ProductCard({ app, release, installedVersion, onOpen }: ProductC
   // A badge only when detection produced a reading for this app (undefined means
   // not probed — coming-soon apps, or running outside the Tauri shell).
   const status = statusFor(installedVersion, live?.version);
+  // The per-card live bar (FC-31) while this app downloads or verifies.
+  const downloading = isActive(download);
   return (
     <button
       type="button"
@@ -50,6 +57,15 @@ export function ProductCard({ app, release, installedVersion, onOpen }: ProductC
                 right plural form and formats it for the active locale. */}
             {t("downloads-count", { count: live.totalDownloads })}
           </p>
+        )}
+        {downloading && (
+          <div className="card-progress">
+            <ProgressBar
+              fraction={stateFraction(download)}
+              label={t("dl-progress-label", { name: app.name })}
+              percentClassName="card-progress-percent"
+            />
+          </div>
         )}
       </div>
     </button>

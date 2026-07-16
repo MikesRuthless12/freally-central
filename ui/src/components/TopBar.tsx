@@ -2,14 +2,12 @@ import { useT } from "../i18n";
 import type { Theme } from "../theme";
 
 interface TopBarProps {
-  query: string;
-  onQuery: (query: string) => void;
   theme: Theme;
   onToggleTheme: () => void;
   onOpenSettings: () => void;
 }
 
-export function TopBar({ query, onQuery, theme, onToggleTheme, onOpenSettings }: TopBarProps) {
+export function TopBar({ theme, onToggleTheme, onOpenSettings }: TopBarProps) {
   const t = useT();
   return (
     <header className="topbar">
@@ -18,14 +16,6 @@ export function TopBar({ query, onQuery, theme, onToggleTheme, onOpenSettings }:
         <span className="brand-name">{t("app-name")}</span>
       </div>
       <div className="topbar-actions">
-        <input
-          className="search"
-          type="search"
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          placeholder={t("search-placeholder")}
-          aria-label={t("search-placeholder")}
-        />
         <button
           type="button"
           className="icon-btn"
