@@ -68,6 +68,21 @@ updates-restart-now = अभी पुनरारंभ करें
 updates-restart-later = बाद में
 updates-try-again = फिर प्रयास करें
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } डाउनलोड
+downloads-total = कुल
+downloads-brandwide = Freally ऐप्स { $count } बार डाउनलोड हुए
+downloads-unavailable = डाउनलोड संख्याएँ अभी उपलब्ध नहीं हैं।
+detail-released = { $date } को जारी किया गया
+detail-downloads = डाउनलोड
+detail-whats-new = नया क्या है
+refresh = रीफ़्रेश करें
+changelog-heading = { $name } में नया क्या है
+changelog-version = संस्करण { $version } · { $date }
+changelog-empty = अभी तक कोई रिलीज़ नोट नहीं।
+changelog-view-full = पूरा चेंजलॉग देखें
+changelog-view-release = GitHub पर देखें
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = डाउनलोड करें
 tagline-freally-capture = स्टूडियो की तरह रिकॉर्ड और स्ट्रीम करें — एक साफ़ ऐप।

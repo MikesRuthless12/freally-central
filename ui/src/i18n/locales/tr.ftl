@@ -68,6 +68,21 @@ updates-restart-now = Şimdi yeniden başlat
 updates-restart-later = Sonra
 updates-try-again = Tekrar dene
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } indirme
+downloads-total = Toplam
+downloads-brandwide = Freally uygulamaları { $count } kez indirildi
+downloads-unavailable = İndirme sayıları şu anda kullanılamıyor.
+detail-released = { $date } tarihinde yayınlandı
+detail-downloads = İndirmeler
+detail-whats-new = Yenilikler
+refresh = Yenile
+changelog-heading = { $name } yenilikleri
+changelog-version = Sürüm { $version } · { $date }
+changelog-empty = Henüz sürüm notu yok.
+changelog-view-full = Tüm değişiklik günlüğünü gör
+changelog-view-release = GitHub'da gör
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = İndir
 tagline-freally-capture = Stüdyo gibi kaydedin ve yayınlayın — tek temiz uygulama.

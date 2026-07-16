@@ -21,8 +21,52 @@
     </header>
 
     <main>
-      <!-- In development — Phase 0 -->
+      <!-- In development — Phase 2 -->
       <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">In development</span>
+            <span class="date">Phase 2 — live release data &amp; real download counts</span>
+          </div>
+        </div>
+        <h2>0.2.0 — Phase 2</h2>
+        <p class="summary">
+          Every card is now wired to GitHub's real numbers. Central resolves each app's latest
+          release from the GitHub Releases API and shows the live version and date, per-OS and total
+          download counts, and a brand-wide grand total — always the real figures, never seeded, and
+          hidden (not faked) when the API is offline or rate-limited.
+        </p>
+        <ul class="features">
+          <li><strong>Live release data</strong> — latest version + date per app, resolved from the Releases API against each app's per-OS asset patterns.</li>
+          <li><strong>Real download counts</strong> — per-OS and total per app, plus a brand-wide grand total, straight from GitHub's <code>download_count</code>.</li>
+          <li><strong>Changelog / What's New viewer</strong> — the latest release's notes shown verbatim in-app, with fully localized chrome and links out to the full changelog.</li>
+          <li><strong>18-language UI</strong> — all new strings localized across the 18 locales; the CI parity lint stays green.</li>
+        </ul>
+      </article>
+
+      <!-- In development — Phase 1 -->
+      <article class="release">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">In development</span>
+            <span class="date">Phase 1 — the shell &amp; the catalog grid</span>
+          </div>
+        </div>
+        <h2>0.1.0 — Phase 1</h2>
+        <p class="summary">
+          The Tauri v2 + React + Rust app itself: a dark/light themed window and a product-card grid
+          driven by the hosted catalog manifest, with an offline fallback so the grid always renders.
+        </p>
+        <ul class="features">
+          <li><strong>Product-card grid + detail view</strong> — big icon, name, tagline, description, features, and start date, with a Type filter and a search box.</li>
+          <li><strong>First-run EULA gate</strong> — shown once on first use; acceptance is remembered.</li>
+          <li><strong>Settings</strong> — About, What's New, and a self-hosted signed check-for-updates flow.</li>
+          <li><strong>18-language UI</strong> — the Fluent i18n system and 18 locales with a CI parity + coverage lint.</li>
+        </ul>
+      </article>
+
+      <!-- In development — Phase 0 -->
+      <article class="release">
         <div class="release-head">
           <div class="meta">
             <span class="badge">In development</span>

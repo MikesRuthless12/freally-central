@@ -68,6 +68,21 @@ updates-restart-now = Khởi động lại ngay
 updates-restart-later = Để sau
 updates-try-again = Thử lại
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } lượt tải
+downloads-total = Tổng
+downloads-brandwide = Ứng dụng Freally đã được tải { $count } lượt
+downloads-unavailable = Số lượt tải hiện không khả dụng.
+detail-released = Phát hành ngày { $date }
+detail-downloads = Lượt tải
+detail-whats-new = Có gì mới
+refresh = Làm mới
+changelog-heading = Có gì mới trong { $name }
+changelog-version = Phiên bản { $version } · { $date }
+changelog-empty = Chưa có ghi chú phát hành.
+changelog-view-full = Xem nhật ký thay đổi đầy đủ
+changelog-view-release = Xem trên GitHub
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = Tải xuống
 tagline-freally-capture = Ghi và phát trực tiếp như phòng thu — một ứng dụng gọn gàng.

@@ -68,6 +68,21 @@ updates-restart-now = 지금 다시 시작
 updates-restart-later = 나중에
 updates-try-again = 다시 시도
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count }회 다운로드
+downloads-total = 합계
+downloads-brandwide = Freally 앱이 { $count }회 다운로드됨
+downloads-unavailable = 지금은 다운로드 수를 사용할 수 없습니다.
+detail-released = { $date } 출시
+detail-downloads = 다운로드
+detail-whats-new = 새로운 소식
+refresh = 새로고침
+changelog-heading = { $name }의 새로운 소식
+changelog-version = 버전 { $version } · { $date }
+changelog-empty = 아직 릴리스 노트가 없습니다.
+changelog-view-full = 전체 변경 로그 보기
+changelog-view-release = GitHub에서 보기
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = 다운로드
 tagline-freally-capture = 스튜디오처럼 녹화하고 스트리밍 — 하나의 앱으로.

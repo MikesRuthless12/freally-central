@@ -5,10 +5,12 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **Phase 0 complete** — the repo, the 3-OS CI matrix, the signed release pipeline,
-> and the GitHub Pages docs site + catalog manifest are stood up. No product code yet; Phase 1
-> (the Tauri shell + catalog grid) is next. See `Freally-Central-Feature-Roadmap.md` for the
-> plan and `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
+> Status: **Phase 2 complete** — on top of the Phase 0 pipeline and the Phase 1 shell + catalog
+> grid, each card now shows **live GitHub release data**: the latest version + date, per-OS and
+> total **real download counts** (with a brand-wide grand total), and an in-app **changelog /
+> What's New** viewer. Next up is Phase 3 (install detection + status badges). See
+> `Freally-Central-Feature-Roadmap.md` for the plan and `Build-Prompts-Guide.md` for the
+> phase-by-phase build prompts.
 
 ## What it is
 
@@ -58,14 +60,12 @@ Freally Central/
 
 ## Development & release
 
-The repo, CI/CD, and docs site are stood up (Phase 0). No product code yet — Phase 1
-scaffolds the Tauri v2 + React + Rust app.
+The Tauri v2 + React + Rust app is live (Phases 1–2). Run it locally with `npm install` at the
+repo root, then `npm run tauri dev`.
 
 - **CI** — `.github/workflows/ci.yml` runs a 3-OS matrix (Windows, macOS, Linux): Rust
   `fmt`/`clippy`/`test` + `cargo deny`, and UI `typecheck`/`lint`/`test`/`i18n:lint` +
-  Playwright `test:e2e`. The steps are existence-guarded, so the matrix is green today and
-  the real checks activate automatically once Phase 1 adds `Cargo.toml` / `ui/`. Branch
-  protection on `main` requires the **CI Success** gate.
+  Playwright `test:e2e`. Branch protection on `main` requires the **CI Success** gate.
 - **Pages** — `.github/workflows/pages.yml` publishes `docs/` and serves the catalog manifest:
   - Site — https://mikesruthless12.github.io/freally-central/
   - Manifest — https://mikesruthless12.github.io/freally-central/freally-central.json

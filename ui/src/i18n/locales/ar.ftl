@@ -68,6 +68,21 @@ updates-restart-now = أعد التشغيل الآن
 updates-restart-later = لاحقًا
 updates-try-again = حاول مجددًا
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } تنزيل
+downloads-total = الإجمالي
+downloads-brandwide = تم تنزيل تطبيقات Freally { $count } مرة
+downloads-unavailable = أعداد التنزيلات غير متاحة الآن.
+detail-released = صدر في { $date }
+detail-downloads = التنزيلات
+detail-whats-new = ما الجديد
+refresh = تحديث
+changelog-heading = ما الجديد في { $name }
+changelog-version = الإصدار { $version } · { $date }
+changelog-empty = لا توجد ملاحظات إصدار بعد.
+changelog-view-full = عرض سجل التغييرات الكامل
+changelog-view-release = عرض على GitHub
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = تنزيل
 tagline-freally-capture = سجّل وبثّ باحتراف — تطبيق واحد أنيق.

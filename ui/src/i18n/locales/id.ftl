@@ -68,6 +68,21 @@ updates-restart-now = Mulai ulang sekarang
 updates-restart-later = Nanti
 updates-try-again = Coba lagi
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } unduhan
+downloads-total = Total
+downloads-brandwide = Aplikasi Freally diunduh { $count } kali
+downloads-unavailable = Jumlah unduhan tidak tersedia saat ini.
+detail-released = Dirilis pada { $date }
+detail-downloads = Unduhan
+detail-whats-new = Yang Baru
+refresh = Segarkan
+changelog-heading = Yang baru di { $name }
+changelog-version = Versi { $version } · { $date }
+changelog-empty = Belum ada catatan rilis.
+changelog-view-full = Lihat changelog lengkap
+changelog-view-release = Lihat di GitHub
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = Unduh
 tagline-freally-capture = Rekam dan streaming seperti studio — satu aplikasi rapi.

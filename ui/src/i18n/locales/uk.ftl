@@ -68,6 +68,27 @@ updates-restart-now = Перезапустити зараз
 updates-restart-later = Пізніше
 updates-try-again = Спробувати ще раз
 
+# --- Live release data (Phase 2) ---
+downloads-count =
+    { $count ->
+        [one] { $count } завантаження
+        [few] { $count } завантаження
+        [many] { $count } завантажень
+       *[other] { $count } завантаження
+    }
+downloads-total = Усього
+downloads-brandwide = Застосунки Freally завантажено { $count } разів
+downloads-unavailable = Кількість завантажень зараз недоступна.
+detail-released = Випущено { $date }
+detail-downloads = Завантаження
+detail-whats-new = Що нового
+refresh = Оновити
+changelog-heading = Що нового у { $name }
+changelog-version = Версія { $version } · { $date }
+changelog-empty = Ще немає приміток до випуску.
+changelog-view-full = Переглянути повний журнал змін
+changelog-view-release = Переглянути на GitHub
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = Завантажити
 tagline-freally-capture = Записуйте та стримте як студія — один зручний застосунок.
