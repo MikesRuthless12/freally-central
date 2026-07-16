@@ -68,6 +68,21 @@ updates-restart-now = 立即重启
 updates-restart-later = 稍后
 updates-try-again = 重试
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } 次下载
+downloads-total = 总计
+downloads-brandwide = Freally 应用已被下载 { $count } 次
+downloads-unavailable = 下载次数暂时不可用。
+detail-released = 发布于 { $date }
+detail-downloads = 下载
+detail-whats-new = 新变化
+refresh = 刷新
+changelog-heading = { $name } 的新变化
+changelog-version = 版本 { $version } · { $date }
+changelog-empty = 暂无发行说明。
+changelog-view-full = 查看完整更新日志
+changelog-view-release = 在 GitHub 上查看
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = 下载
 tagline-freally-capture = 像录音棚一样录制与直播 — 一个简洁的应用。

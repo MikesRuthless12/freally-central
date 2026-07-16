@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "../catalog/loader";
 import type { CatalogApp } from "../catalog/types";
-import { useT } from "../i18n";
+import { useI18n } from "../i18n";
+import { formatCount } from "../releases/format";
+import { useReleases } from "../releases/useReleases";
 import { useTheme } from "../theme";
 import { SettingsDialog } from "../panels/Settings";
 import { CardGrid } from "./CardGrid";
@@ -24,8 +26,9 @@ function matchesQuery(app: CatalogApp, query: string): boolean {
 }
 
 export function Hub() {
-  const t = useT();
+  const { t, locale } = useI18n();
   const { apps, source, loaded } = useCatalog();
+  const releases = useReleases(apps);
   const { theme, toggle } = useTheme();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -50,14 +53,33 @@ export function Hub() {
 
       <main className="main">
         {selected ? (
-          <DetailView app={selected} onBack={() => setSelectedId(null)} />
+          <DetailView
+            app={selected}
+            release={releases.byId.get(selected.id)}
+            onBack={() => setSelectedId(null)}
+          />
         ) : (
           <>
             <Toolbar filter={filter} onFilter={setFilter} />
             {loaded && source === "bundled" && (
               <p className="offline-note">{t("status-offline")}</p>
             )}
-            <CardGrid apps={visible} onOpen={(a) => setSelectedId(a.id)} />
+            <div className="brand-total">
+              {releases.grandTotal !== null && (
+                <span className="brand-total-count">
+                  {t("downloads-brandwide", { count: formatCount(locale, releases.grandTotal) })}
+                </span>
+              )}
+              <button
+                type="button"
+                className="link-btn"
+                onClick={releases.refresh}
+                disabled={releases.loading}
+              >
+                {t("refresh")}
+              </button>
+            </div>
+            <CardGrid apps={visible} releases={releases.byId} onOpen={(a) => setSelectedId(a.id)} />
           </>
         )}
       </main>

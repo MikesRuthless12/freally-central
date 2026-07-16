@@ -68,6 +68,21 @@ updates-restart-now = 今すぐ再起動
 updates-restart-later = 後で
 updates-try-again = 再試行
 
+# --- Live release data (Phase 2) ---
+downloads-count = { $count } ダウンロード
+downloads-total = 合計
+downloads-brandwide = Freally アプリは { $count } 回ダウンロードされました
+downloads-unavailable = ダウンロード数は現在利用できません。
+detail-released = { $date } にリリース
+detail-downloads = ダウンロード
+detail-whats-new = 新着情報
+refresh = 更新
+changelog-heading = { $name } の新着情報
+changelog-version = バージョン { $version } · { $date }
+changelog-empty = リリースノートはまだありません。
+changelog-view-full = 変更履歴をすべて表示
+changelog-view-release = GitHub で表示
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = ダウンロード
 tagline-freally-capture = スタジオのように録画・配信 — ひとつのアプリで。

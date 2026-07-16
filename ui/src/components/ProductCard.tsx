@@ -1,17 +1,20 @@
 import { useT } from "../i18n";
 import { appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
+import { liveRelease, type ReleaseState } from "../releases/types";
 import { AppIcon } from "./AppIcon";
 
 interface ProductCardProps {
   app: CatalogApp;
+  release?: ReleaseState;
   onOpen: (app: CatalogApp) => void;
 }
 
-export function ProductCard({ app, onOpen }: ProductCardProps) {
+export function ProductCard({ app, release, onOpen }: ProductCardProps) {
   const t = useT();
   const soon = app.status === "coming-soon";
   const tagline = appTagline(t, app);
+  const live = liveRelease(release);
   return (
     <button
       type="button"
@@ -29,6 +32,15 @@ export function ProductCard({ app, onOpen }: ProductCardProps) {
         <span className={soon ? "pill pill--soon" : "pill pill--view"}>
           {soon ? t("coming-soon") : t("card-download")}
         </span>
+        {live && (
+          <p className="card-meta">
+            <span className="card-version">v{live.version}</span>
+            {" · "}
+            {/* Pass the number (not a preformatted string) so Fluent selects the
+                right plural form and formats it for the active locale. */}
+            {t("downloads-count", { count: live.totalDownloads })}
+          </p>
+        )}
       </div>
     </button>
   );

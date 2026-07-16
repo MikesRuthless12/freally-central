@@ -68,6 +68,25 @@ updates-restart-now = Reiniciar ahora
 updates-restart-later = Más tarde
 updates-try-again = Reintentar
 
+# --- Live release data (Phase 2) ---
+downloads-count =
+    { $count ->
+        [one] { $count } descarga
+       *[other] { $count } descargas
+    }
+downloads-total = Total
+downloads-brandwide = Apps de Freally descargadas { $count } veces
+downloads-unavailable = Los recuentos de descargas no están disponibles ahora mismo.
+detail-released = Publicado el { $date }
+detail-downloads = Descargas
+detail-whats-new = Novedades
+refresh = Actualizar
+changelog-heading = Novedades de { $name }
+changelog-version = Versión { $version } · { $date }
+changelog-empty = Aún no hay notas de la versión.
+changelog-view-full = Ver el registro de cambios completo
+changelog-view-release = Ver en GitHub
+
 # --- Per-app taglines (localized catalog copy) ---
 card-download = Descargar
 tagline-freally-capture = Graba y transmite como un estudio: una sola app.

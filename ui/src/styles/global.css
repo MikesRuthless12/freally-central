@@ -371,6 +371,9 @@ button {
 }
 .detail-actions {
   margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 /* ---------- Modal ---------- */
@@ -633,6 +636,99 @@ button {
   color: var(--muted);
   font-size: 0.8rem;
   border-top: 1px solid var(--border);
+}
+
+/* ---------- Live release data (Phase 2) ---------- */
+.card-meta {
+  margin: 8px 0 0;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.card-version {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.brand-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: -6px 0 16px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.brand-total-count {
+  font-weight: 600;
+}
+
+.detail-version {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+  padding: 2px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+}
+
+.detail-downloads {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  max-width: 320px;
+}
+.detail-download-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.detail-download-row dt {
+  color: var(--muted);
+}
+.detail-download-row dd {
+  margin: 0;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+.detail-download-total {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+  margin-top: 2px;
+  font-weight: 600;
+}
+.detail-downloads-note {
+  margin-top: 8px;
+}
+
+.changelog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.changelog-heading {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+.changelog-version {
+  margin: 0;
+  font-size: 0.8rem;
+}
+.changelog-notes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 46vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.changelog-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 @media (max-width: 640px) {
