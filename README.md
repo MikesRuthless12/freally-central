@@ -5,14 +5,18 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **Phase 4 complete** — on top of the Phase 0–3 pipeline, shell, catalog grid, live
-> release data, and install detection, Central now **downloads installers itself**: a native
-> engine streams the right per-OS installer with a **precise two-decimal percent** from real
-> bytes, verifies **size + SHA-256** before the file is ever kept, resumes interrupted
-> transfers, and **Download All** queues every app with bounded concurrency, an aggregate bar,
-> and per-app failure isolation. Next up is Phase 5 (hands-off silent installation). See
-> `Freally-Central-Feature-Roadmap.md` for the plan and `Build-Prompts-Guide.md` for the
-> phase-by-phase build prompts.
+> Status: **Phase 5 complete** — on top of the Phase 0–4 pipeline, shell, catalog grid, live
+> release data, install detection, and the verified download engine, Central now **installs
+> hands-off**: one click on **Download & install all** (or a card's Install/Update) carries an
+> app through download, verification, and a **silent install** with the installer's own
+> defaults — NSIS `/S` (per-user, no UAC), MSI `/qn`, macOS dmg mount + copy into Applications,
+> Linux AppImage placement or deb/rpm behind a **single pkexec consent per batch**. Execution is
+> gated by a trust anchor independent of the catalog: a **matching published SHA-256 is
+> required**, the release owner must be in a **compile-time allowlist**, and the file is
+> **re-hashed at install time** — a tampered or unverified file is refused, honestly. The badge
+> flips to **Installed ✓** and the detail view offers **Open**. Next up is Phase 6 (the
+> embeddable "Central inside" panel). See `Freally-Central-Feature-Roadmap.md` for the plan and
+> `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
 
 ## What it is
 

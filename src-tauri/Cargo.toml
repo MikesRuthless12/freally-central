@@ -1,6 +1,6 @@
 [package]
 name = "freally-central"
-version = "0.4.0"
+version = "0.5.0"
 description = "One hub for every Freally-brand app."
 authors = ["Mike Weaver (Havoc Software)"]
 license = "SEE LICENSE IN LICENSE"
@@ -29,7 +29,7 @@ reqwest = { version = "0.13", features = ["stream"] }
 futures-util = "0.3"
 sha2 = "0.10"
 hex = "0.4"
-tokio = { version = "1", features = ["fs", "io-util"] }
+tokio = { version = "1", features = ["fs", "io-util", "process", "time", "macros"] }
 
 [target."cfg(windows)".dependencies]
 winreg = "0.56.0"

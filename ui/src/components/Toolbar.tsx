@@ -1,7 +1,7 @@
 import { useT } from "../i18n";
 import type { BatchEntry } from "../downloads/types";
-import type { DownloadsApi } from "../downloads/useDownloads";
-import { batchProgress } from "../downloads/progress";
+import type { BatchSummary, DownloadsApi } from "../downloads/useDownloads";
+import { batchProgress, installProgress } from "../downloads/progress";
 import { ProgressBar } from "./ProgressBar";
 
 export type Filter = "all" | "available" | "coming-soon";
@@ -10,29 +10,68 @@ interface ToolbarProps {
   filter: Filter;
   onFilter: (filter: Filter) => void;
   downloads: DownloadsApi;
-  /** Every installer Download All would fetch on this machine. */
+  /** Every installer Download & install all would fetch on this machine. */
   entries: BatchEntry[];
 }
 
 export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) {
   const t = useT();
   const { batch } = downloads;
+  const busy = batch.status === "running" || batch.status === "installing";
 
-  // Download All (FC-32): enabled only where a real engine exists and at least
-  // one app ships an installer for this machine; the title says why otherwise.
-  const canDownloadAll = downloads.supported && entries.length > 0 && batch.status !== "running";
+  // Download & install all (FC-32 + FC-40): enabled only where a real engine
+  // exists and at least one app ships an installer for this machine; the
+  // title says why otherwise.
+  const canStart = downloads.supported && entries.length > 0 && !busy;
   const hint = !downloads.supported
-    ? t("download-all-unsupported")
+    ? t("install-all-unsupported")
     : entries.length === 0
-      ? t("download-all-none")
-      : t("download-all-hint");
+      ? t("install-all-none")
+      : t("install-all-hint");
 
-  // The aggregate bar reflects the batch that was actually queued; its
-  // lifecycle comes from the store, not re-derived from per-entry states.
-  const progress = batchProgress(batch.entries, downloads.byId);
-  // "Cancel all" can settle a batch with queued entries that never started —
-  // count everything that didn't finish or fail as canceled, honestly.
-  const canceledCount = batch.entries.length - progress.done - progress.failed;
+  // The live aggregate bar reflects the batch that was actually queued; the
+  // lifecycle comes from the store, not re-derived from per-entry states. Each
+  // stage's aggregate is computed only while that stage renders it.
+  let liveBar: { label: string; fraction: number } | null = null;
+  if (batch.status === "running") {
+    const progress = batchProgress(batch.entries, downloads.byId);
+    liveBar = {
+      label: t("batch-progress", { done: progress.done, total: batch.entries.length }),
+      fraction: progress.fraction,
+    };
+  } else if (batch.status === "installing") {
+    const installs = installProgress(batch.installIds, downloads.byId);
+    liveBar = {
+      label: t("batch-installing", { done: installs.installed, total: batch.installIds.length }),
+      fraction: installs.fraction,
+    };
+  }
+
+  // The settled line reports EVERY problem the batch had — a failed install
+  // must never hide a download that was never fetched, and vice versa. It
+  // reads from the summary frozen at settle time, so later activity on a
+  // member app can't rewrite what this batch's outcome was.
+  const settledLabel = (s: BatchSummary): string => {
+    const entriesTotal = batch.entries.length;
+    const installTotal = batch.installIds.length;
+    const parts: string[] = [];
+    if (s.downloadsFailed > 0) {
+      parts.push(t("batch-failed", { failed: s.downloadsFailed, total: entriesTotal }));
+    }
+    if (s.installsFailed > 0) {
+      parts.push(t("batch-install-failed", { failed: s.installsFailed, total: installTotal }));
+    }
+    if (s.downloadsCanceled > 0) {
+      parts.push(t("batch-canceled", { canceled: s.downloadsCanceled, total: entriesTotal }));
+    }
+    if (s.installsCanceled > 0) {
+      parts.push(
+        t("batch-install-canceled", { canceled: s.installsCanceled, total: installTotal }),
+      );
+    }
+    if (parts.length > 0) return parts.join(" ");
+    return installTotal > 0 ? t("batch-installed") : t("batch-done");
+  };
 
   return (
     <div className="toolbar">
@@ -40,11 +79,11 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
         <button
           type="button"
           className="download-all"
-          disabled={!canDownloadAll}
+          disabled={!canStart}
           title={hint}
           onClick={() => downloads.startAll(entries)}
         >
-          {t("download-all")}
+          {t("install-all")}
         </button>
         <label className="type-filter">
           <span className="type-filter-label">{t("filter-type")}</span>
@@ -62,38 +101,21 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
 
       {batch.status !== "idle" && (
         <div className="batch">
-          {batch.status === "running" ? (
+          {liveBar && (
             <>
-              <span className="batch-label">
-                {t("batch-progress", {
-                  done: progress.done,
-                  total: batch.entries.length,
-                })}
-              </span>
+              <span className="batch-label">{liveBar.label}</span>
               <ProgressBar
-                fraction={progress.fraction}
-                label={t("download-all")}
+                fraction={liveBar.fraction}
+                label={t("install-all")}
                 percentClassName="batch-percent"
               />
               <button type="button" className="btn btn-ghost" onClick={downloads.cancelAll}>
                 {t("batch-cancel-all")}
               </button>
             </>
-          ) : (
-            <span className="batch-label">
-              {/* Honest summary: failures and user cancels are different things. */}
-              {progress.failed > 0
-                ? t("batch-failed", {
-                    failed: progress.failed,
-                    total: batch.entries.length,
-                  })
-                : canceledCount > 0
-                  ? t("batch-canceled", {
-                      canceled: canceledCount,
-                      total: batch.entries.length,
-                    })
-                  : t("batch-done")}
-            </span>
+          )}
+          {batch.status === "settled" && batch.summary && (
+            <span className="batch-label">{settledLabel(batch.summary)}</span>
           )}
         </div>
       )}

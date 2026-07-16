@@ -2,7 +2,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CatalogApp } from "../catalog/types";
 import type { InstallerAsset, ReleaseState } from "../releases/types";
-import type { DownloadEngine, DownloadEvent, DownloadRequest } from "./types";
+import type {
+  DownloadEngine,
+  DownloadEvent,
+  DownloadRequest,
+  InstallEvent,
+  InstallRequest,
+} from "./types";
 import { MAX_CONCURRENT_DOWNLOADS, useDownloads } from "./useDownloads";
 
 // Drive the store with a scripted engine injected through the test-only hook —
@@ -17,10 +23,12 @@ function asset(id: string, size = 100): InstallerAsset {
   };
 }
 
-/** An engine that succeeds/fails per app id and records concurrency. */
-function scriptedEngine(failIds: Set<string> = new Set()) {
+/** An engine that succeeds/fails per app id (downloads and installs scripted
+ *  separately) and records download concurrency + what it was asked to install. */
+function scriptedEngine(failIds: Set<string> = new Set(), failInstallIds: Set<string> = new Set()) {
   let active = 0;
   let maxActive = 0;
+  const installedIds: string[] = [];
   const engine: DownloadEngine = {
     async start(request: DownloadRequest, onEvent: (e: DownloadEvent) => void): Promise<void> {
       active += 1;
@@ -38,8 +46,22 @@ function scriptedEngine(failIds: Set<string> = new Set()) {
       active -= 1;
     },
     cancel: vi.fn(),
+    async install(requests: InstallRequest[], onEvent: (e: InstallEvent) => void): Promise<void> {
+      for (const { id } of requests) {
+        onEvent({ kind: "started", id });
+        await Promise.resolve();
+        onEvent({ kind: "progress", id, fraction: 0.5 });
+        if (failInstallIds.has(id)) {
+          onEvent({ kind: "failed", id, code: "installerFailed", detail: "scripted failure" });
+        } else {
+          installedIds.push(id);
+          onEvent({ kind: "installed", id });
+        }
+      }
+    },
+    cancelInstalls: vi.fn(),
   };
-  return { engine, maxConcurrent: () => maxActive };
+  return { engine, maxConcurrent: () => maxActive, installedIds };
 }
 
 afterEach(() => {
@@ -71,8 +93,8 @@ describe("useDownloads", () => {
     });
   });
 
-  it("Download All isolates failures and finishes the rest (FC-32)", async () => {
-    const { engine } = scriptedEngine(new Set(["bad"]));
+  it("Download & install all isolates failures and installs the rest (FC-32+FC-40)", async () => {
+    const { engine, installedIds } = scriptedEngine(new Set(["bad"]));
     window.__FC_TEST__ = { downloadEngine: engine };
     const { result } = renderHook(() => useDownloads());
 
@@ -87,8 +109,13 @@ describe("useDownloads", () => {
     await waitFor(() => {
       expect(result.current.batch.status).toBe("settled");
     });
-    expect(result.current.byId.get("good-1")?.phase).toBe("done");
-    expect(result.current.byId.get("good-2")?.phase).toBe("done");
+    // The verified set continued into its silent install; the failed download
+    // never reached the installer (only verified files may execute).
+    expect(result.current.byId.get("good-1")?.phase).toBe("installed");
+    expect(result.current.byId.get("good-2")?.phase).toBe("installed");
+    expect(result.current.batch.installIds).toEqual(["good-1", "good-2"]);
+    expect(installedIds).toEqual(["good-1", "good-2"]);
+    expect(result.current.sessionInstalled).toEqual(new Set(["good-1", "good-2"]));
     // The failure keeps the real bytes it transferred (50 of 100).
     expect(result.current.byId.get("bad")).toEqual({ phase: "failed", code: "network", received: 50 });
   });
@@ -111,8 +138,79 @@ describe("useDownloads", () => {
     });
     expect(maxConcurrent()).toBeLessThanOrEqual(MAX_CONCURRENT_DOWNLOADS);
     for (const entry of entries) {
-      expect(result.current.byId.get(entry.appId)?.phase).toBe("done");
+      expect(result.current.byId.get(entry.appId)?.phase).toBe("installed");
     }
+  });
+
+  it("installFlow chains one download into its silent install (FC-40)", async () => {
+    const { engine, installedIds } = scriptedEngine();
+    window.__FC_TEST__ = { downloadEngine: engine };
+    const { result } = renderHook(() => useDownloads());
+
+    await act(async () => {
+      result.current.installFlow("freally-capture", asset("freally-capture"));
+    });
+
+    await waitFor(() => {
+      expect(result.current.byId.get("freally-capture")?.phase).toBe("installed");
+    });
+    expect(installedIds).toEqual(["freally-capture"]);
+    expect(result.current.sessionInstalled.has("freally-capture")).toBe(true);
+    // The install phases carry the finished download forward.
+    expect(result.current.byId.get("freally-capture")).toEqual({
+      phase: "installed",
+      path: "/tmp/freally-capture_1.0.0_x64-setup.exe",
+      checksumVerified: true,
+    });
+    expect(result.current.installRunsCompleted).toBe(1);
+  });
+
+  it("a failed download never reaches the installer via installFlow", async () => {
+    const { engine, installedIds } = scriptedEngine(new Set(["bad"]));
+    window.__FC_TEST__ = { downloadEngine: engine };
+    const { result } = renderHook(() => useDownloads());
+
+    await act(async () => {
+      result.current.installFlow("bad", asset("bad"));
+    });
+
+    await waitFor(() => {
+      expect(result.current.byId.get("bad")?.phase).toBe("failed");
+    });
+    expect(installedIds).toEqual([]);
+    expect(result.current.installRunsCompleted).toBe(0);
+  });
+
+  it("reports an install failure honestly and keeps the downloaded file offered", async () => {
+    const { engine } = scriptedEngine(new Set(), new Set(["freally-capture"]));
+    window.__FC_TEST__ = { downloadEngine: engine };
+    const { result } = renderHook(() => useDownloads());
+
+    await act(async () => {
+      result.current.installFlow("freally-capture", asset("freally-capture"));
+    });
+
+    await waitFor(() => {
+      expect(result.current.byId.get("freally-capture")?.phase).toBe("installFailed");
+    });
+    expect(result.current.byId.get("freally-capture")).toEqual({
+      phase: "installFailed",
+      code: "installerFailed",
+      path: "/tmp/freally-capture_1.0.0_x64-setup.exe",
+      checksumVerified: true,
+    });
+    expect(result.current.sessionInstalled.has("freally-capture")).toBe(false);
+  });
+
+  it("cancelAll reaches the install stage", async () => {
+    const { engine } = scriptedEngine();
+    window.__FC_TEST__ = { downloadEngine: engine };
+    const { result } = renderHook(() => useDownloads());
+
+    act(() => {
+      result.current.cancelAll();
+    });
+    expect(engine.cancelInstalls).toHaveBeenCalled();
   });
 
   it("resolves this machine's installer via the injected platform", async () => {

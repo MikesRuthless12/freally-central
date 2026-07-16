@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import type { CatalogApp } from "../catalog/types";
+import { liveRelease, type ReleaseState } from "../releases/types";
 import { detectInstalled } from "./detect";
+import { compareVersions } from "./semver";
 
 // Only apps the manifest marks "available" can actually be on the machine, so
 // coming-soon apps are never probed (they'd always read "not installed" and
@@ -67,4 +69,39 @@ export function useInstalled(apps: CatalogApp[]): InstalledState {
   }, [sig, refreshCount, supported]);
 
   return { byId, supported, loading, refresh };
+}
+
+/**
+ * The install map the UI surfaces actually read (FC-42): the real probe, with
+ * this session's completed installs layered on top until the probe reads at
+ * least the version that was installed. Honest on both sides — an
+ * "installed ✓" here is either the installer's own record or this session's
+ * real exit-0 install (which a re-probe, triggered here whenever an install
+ * run settles, then confirms).
+ */
+export function useEffectiveInstalled(
+  installed: InstalledState,
+  releases: ReadonlyMap<string, ReleaseState>,
+  downloads: { sessionInstalled: ReadonlySet<string>; installRunsCompleted: number },
+): Map<string, string | null> {
+  const { refresh, supported } = installed;
+  const { sessionInstalled, installRunsCompleted } = downloads;
+
+  useEffect(() => {
+    if (installRunsCompleted > 0 && supported) refresh();
+  }, [installRunsCompleted, supported, refresh]);
+
+  return useMemo(() => {
+    if (sessionInstalled.size === 0) return installed.byId;
+    const merged = new Map(installed.byId);
+    for (const id of sessionInstalled) {
+      const live = liveRelease(releases.get(id));
+      if (!live) continue;
+      const probed = merged.get(id);
+      if (probed == null || compareVersions(probed, live.version) < 0) {
+        merged.set(id, live.version);
+      }
+    }
+    return merged;
+  }, [installed.byId, sessionInstalled, releases]);
 }

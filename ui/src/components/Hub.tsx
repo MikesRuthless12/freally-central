@@ -4,7 +4,7 @@ import type { CatalogApp } from "../catalog/types";
 import { useI18n } from "../i18n";
 import { formatCount } from "../releases/format";
 import { useReleases } from "../releases/useReleases";
-import { useInstalled } from "../install/useInstalled";
+import { useEffectiveInstalled, useInstalled } from "../install/useInstalled";
 import { useDownloads } from "../downloads/useDownloads";
 import type { BatchEntry } from "../downloads/types";
 import { useTheme } from "../theme";
@@ -38,10 +38,14 @@ export function Hub() {
   const selected = apps.find((a) => a.id === selectedId) ?? null;
   const visible = useMemo(() => apps.filter((a) => matchesFilter(a, filter)), [apps, filter]);
 
-  // Everything Download All would fetch: each available app whose release
-  // ships an installer for this machine (FC-32). Depends on installerFor (a
-  // stable callback that changes only with the platform), NOT the whole
-  // downloads object — which changes identity on every progress event.
+  // The install map the cards and detail view read: the probe merged with this
+  // session's real installs (the hook also re-probes when install runs settle).
+  const mergedInstalled = useEffectiveInstalled(installed, releases.byId, downloads);
+
+  // Everything Download & install all would fetch: each available app whose
+  // release ships an installer for this machine (FC-32). Depends on
+  // installerFor (a stable callback that changes only with the platform), NOT
+  // the whole downloads object — which changes identity on every progress event.
   const { installerFor } = downloads;
   const downloadAllEntries = useMemo<BatchEntry[]>(() => {
     const entries: BatchEntry[] = [];
@@ -61,7 +65,7 @@ export function Hub() {
           <DetailView
             app={selected}
             release={releases.byId.get(selected.id)}
-            installedVersion={installed.byId.get(selected.id)}
+            installedVersion={mergedInstalled.get(selected.id)}
             downloads={downloads}
             onBack={() => setSelectedId(null)}
           />
@@ -94,7 +98,7 @@ export function Hub() {
             <CardGrid
               apps={visible}
               releases={releases.byId}
-              installed={installed.byId}
+              installed={mergedInstalled}
               downloads={downloads.byId}
               onOpen={(a) => setSelectedId(a.id)}
             />

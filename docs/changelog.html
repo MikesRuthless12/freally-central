@@ -21,8 +21,34 @@
     </header>
 
     <main>
-      <!-- Phase 4 -->
+      <!-- Phase 5 -->
       <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">v0.5.0</span>
+            <span class="date">Phase 5 — hands-off silent install</span>
+          </div>
+        </div>
+        <h2>0.5.0 — Phase 5</h2>
+        <p class="summary">
+          Central now installs hands-off. One click on <strong>Download &amp; install all</strong>
+          (or a card's Install/Update) carries an app through download, verification, and a
+          <strong>silent install</strong> with the installer's own defaults — zero wizard clicks
+          where the OS allows it, at most <strong>one elevation consent per batch</strong>, and the
+          same live bar running to <strong>100.00%</strong> across both stages.
+        </p>
+        <ul class="features">
+          <li><strong>Silent installers per OS</strong> — Windows NSIS <code>/S</code> (per-user, no UAC; <code>msiexec /qn</code> as the MSI fallback), macOS dmg mount + copy into Applications, Linux AppImage placement or deb/rpm behind a single <code>pkexec</code> consent for the whole batch.</li>
+          <li><strong>Only verified official installers ever execute</strong> — a matching published SHA-256 is required, the release owner must be in an allowlist compiled into the app, and the file is re-hashed at install time; a tampered or unverified file is refused and the refusal is shown honestly.</li>
+          <li><strong>Install progress in the same bar</strong> — a determinate staged estimate that only claims 100% on the installer's real success, on the card, the detail view, and the batch aggregate.</li>
+          <li><strong>Installed ✓ and Open</strong> — the badge flips on real success (confirmed by a detection re-probe) and the detail view launches the app from what its installer actually registered.</li>
+          <li><strong>Honest cancel</strong> — pending installs cancel; a running installer is never killed mid-run and reports its real outcome.</li>
+          <li><strong>18-language UI</strong> — all new strings localized across the 18 locales; the CI parity lint stays green.</li>
+        </ul>
+      </article>
+
+      <!-- Phase 4 -->
+      <article class="release">
         <div class="release-head">
           <div class="meta">
             <span class="badge">v0.4.0</span>
