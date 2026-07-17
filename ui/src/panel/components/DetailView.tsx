@@ -19,6 +19,7 @@ import {
 import { failureMessageKey, installFailureMessageKey } from "../downloads/messages";
 import { AppIcon } from "./AppIcon";
 import { ChangelogView } from "./ChangelogView";
+import { LiveRegion } from "./LiveRegion";
 import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
 
@@ -116,6 +117,12 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   })();
   return (
     <section className="detail">
+      {/* Announces the terminal download/install outcome (or an open failure);
+          the streaming percent stays on the bar's role="progressbar". */}
+      <LiveRegion
+        message={note ? t(note.key) : openFailed ? t("fcp-open-failed", { name: app.name }) : ""}
+      />
+
       <button type="button" className="btn btn-ghost detail-back" onClick={onBack}>
         ← {t("fcp-detail-back")}
       </button>

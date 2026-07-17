@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
-import { Modal } from "../panel";
+import { LiveRegion, Modal } from "../panel";
 import { useT } from "../i18n";
 
 type Phase =
@@ -64,8 +64,31 @@ export function UpdatesDialog({ onClose }: { onClose: () => void }) {
     }
   }, []);
 
+  // A short, stable label per phase for the live region below — deliberately NOT
+  // the streaming percent, which changes many times a second and would flood a
+  // screen reader. Errors are already announced by the visible role="alert".
+  const liveStatus = (() => {
+    switch (phase.kind) {
+      case "checking":
+        return t("updates-checking");
+      case "uptodate":
+        return t("updates-uptodate");
+      case "available":
+        return t("updates-available", { version: phase.update.version });
+      case "downloading":
+        return t("updates-downloading", { version: phase.version });
+      case "installed":
+        return t("updates-installed");
+      default:
+        return "";
+    }
+  })();
+
   return (
     <Modal title={t("updates-title")} closeLabel={t("modal-close")} onClose={onClose} wide>
+      {/* Announces each phase change (checking → up to date / available /
+          downloading / installed) — one announcement per transition. */}
+      <LiveRegion message={liveStatus} />
       <div className="updates">
         {phase.kind === "checking" && <p className="muted">{t("updates-checking")}</p>}
 
@@ -119,7 +142,16 @@ export function UpdatesDialog({ onClose }: { onClose: () => void }) {
                 {phase.pct !== null ? `${phase.pct.toFixed(2)}%` : t("updates-starting")}
               </span>
             </div>
-            <div className="bar">
+            <div
+              className="bar"
+              role="progressbar"
+              aria-label={t("updates-downloading", { version: phase.version })}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              // Omit aria-valuenow while starting (pct null) so it reads as
+              // indeterminate rather than stuck at 0%.
+              {...(phase.pct !== null ? { "aria-valuenow": Number(phase.pct.toFixed(2)) } : {})}
+            >
               <div
                 className="bar-fill"
                 style={{ width: phase.pct !== null ? `${phase.pct.toFixed(2)}%` : "8%" }}

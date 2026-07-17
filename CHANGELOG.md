@@ -3,6 +3,15 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## 0.7.0 — Phase 7: polish, distribution & auto-update
+
+- **In-app auto-update now resolves on every OS** (FC-60): the release pipeline publishes one consolidated, signed `latest.json` covering Windows, macOS (Intel + Apple Silicon) and Linux — built by merging each platform's updater fragment in a dedicated release job, instead of four matrix jobs each overwriting a single-OS manifest. **Settings → Check for updates** now resolves, and every update is still verified against the minisign public key baked into the app before it is applied. macOS builds are now ad-hoc signed, so first launch is a right-click → **Open** rather than a hard Gatekeeper block.
+- **Accessibility** (FC-61): every dialog moves focus in on open, traps Tab within itself, closes on Escape, and restores focus to whatever opened it; the first-run EULA is fully keyboard-operable (its text region is focusable, and Accept enables once the text is read or is too short to scroll); progress and terminal status changes are announced to screen readers (`role="progressbar"` with a live value, polite live regions for outcomes); and every control shows a visible keyboard focus ring.
+- **Reduced motion** (FC-61): with the OS "reduce motion" setting on, the card hover lift and the progress/updater bar animations are neutralized — the percent still updates, it just no longer animates.
+- **Themes** (FC-61): light and dark are verified end to end, including native scrollbars and form controls, which now follow the chosen theme (`color-scheme` is driven at runtime).
+- **Public download page** (FC-62): the site offers per-OS installer buttons (Windows, macOS Apple Silicon/Intel, Linux) beside the existing real, auto-incrementing per-OS GitHub download counter.
+- No new user-facing strings — the accessibility work reuses the existing 18-locale catalogs; i18n parity stays green.
+
 ## 0.6.0 — Phase 6: "Central inside" — the embeddable panel
 
 - The whole hub — the card grid, detail view, live release data, install detection, and the verified download → silent-install flow — is now an **embeddable panel** any Freally app can ship under a "More Freally apps" entry, with **no copy of the business logic**: hosts vendor this repo as a git submodule; one pinned commit supplies both the React panel (`ui/src/panel`) and the Rust engine (the new `freally-central-engine` crate). Central itself now runs on exactly that panel and engine.

@@ -5,17 +5,19 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **Phase 6 complete** — the whole hub is now an **embeddable "Central inside"
-> panel**: the grid, detail view, live release data, install detection, and the verified
-> download → **silent-install** flow (trust-gated: required published SHA-256, compile-time
-> owner allowlist, install-time re-hash) live in a reusable panel (`ui/src/panel`) + engine
-> crate (`crates/freally-central-engine`) that any Freally app vendors as a git submodule —
-> **Freally Capture ships it first** under Help → **More Freally apps**, themed by Capture's
-> tokens and localized through Capture's own 18-locale catalogs. Central itself runs on the
-> exact same panel and engine, so there is one implementation, everywhere. See `EMBEDDING.md`
-> for the drop-in guide, `Freally-Central-Feature-Roadmap.md` for the plan, and
-> `Build-Prompts-Guide.md` for the phase-by-phase build prompts. Next up is Phase 7
-> (distribution polish, the self-updater endpoint, a11y & the public site).
+> Status: **Phase 7 complete — the roadmap is done.** Central now ships the way the rest of
+> the brand does: the release pipeline publishes one consolidated, signed `latest.json`
+> covering all three OSes, so **in-app auto-update resolves and verifies on Windows, macOS and
+> Linux** (FC-60); the UI has a full accessibility pass — focus-trapped dialogs, a
+> keyboard-operable first-run agreement, screen-reader announcements, a visible focus ring, and
+> a `prefers-reduced-motion` mode — with light/dark verified end to end (FC-61); and the public
+> site carries per-OS download buttons beside the real GitHub download counter (FC-62). The
+> whole hub also remains an **embeddable "Central inside" panel** (`ui/src/panel` + the
+> `crates/freally-central-engine` crate) that any Freally app vendors as a git submodule —
+> **Freally Capture ships it first** under Help → **More Freally apps** — so there is one
+> implementation, everywhere. See `EMBEDDING.md` for the drop-in guide,
+> `Freally-Central-Feature-Roadmap.md` for the plan, and `Build-Prompts-Guide.md` for the
+> phase-by-phase build prompts.
 
 ## What it is
 
@@ -77,9 +79,11 @@ repo root, then `npm run tauri dev`.
 - **Pages** — `.github/workflows/pages.yml` publishes `docs/` and serves the catalog manifest:
   - Site — https://mikesruthless12.github.io/freally-central/
   - Manifest — https://mikesruthless12.github.io/freally-central/freally-central.json
-- **Releases** — pushing a `v*` tag runs `.github/workflows/release.yml`, which builds and
-  **signs** the Tauri installers for all three OSes, publishes a GitHub Release (draft), and
-  writes the signed `latest.json` updater endpoint. It activates once Phase 1 adds the app.
+- **Releases** — pushing a `v*` tag runs `.github/workflows/release.yml`: a build matrix
+  **signs** the Tauri installers for all three OSes and stages a per-platform updater fragment,
+  then a release job merges those fragments into one consolidated, signed `latest.json`
+  (covering Windows, macOS Intel + Apple Silicon, and Linux) and opens a **draft** GitHub
+  Release with every installer plus that updater endpoint attached. A human publishes the draft.
 
 **Required repository secrets** (Settings → Secrets and variables → Actions) before the first
 signed release:
