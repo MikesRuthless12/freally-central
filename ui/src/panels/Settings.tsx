@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal } from "../components/Modal";
+import { Modal } from "../panel/components/Modal";
 import { useI18n, useT } from "../i18n";
 import { localeName } from "../i18n/localeNames";
 import type { Theme } from "../theme";
@@ -27,7 +27,7 @@ export function SettingsDialog({ onClose, theme, onToggleTheme }: SettingsDialog
   if (sub === "updates") return <UpdatesDialog onClose={() => setSub(null)} />;
 
   return (
-    <Modal title={t("settings-title")} onClose={onClose}>
+    <Modal title={t("settings-title")} closeLabel={t("modal-close")} onClose={onClose}>
       <div className="settings">
         <section className="settings-row">
           <span className="settings-label">{t("settings-theme")}</span>

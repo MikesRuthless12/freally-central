@@ -1,0 +1,132 @@
+// The "Central inside" embeddable panel (FC-50): the catalog grid, detail
+// view, and the whole download → verify → silent-install flow, as one
+// self-contained component. Hosts provide i18n (their own Fluent runtime with
+// the panel's fcp-* catalogs loaded) and the shell actions; everything else —
+// manifest, live release data, install detection, downloads, installs — is the
+// same single implementation Freally Central itself runs.
+import { useCallback, useMemo, useState } from "react";
+import { useCatalog } from "./catalog/loader";
+import { CardGrid } from "./components/CardGrid";
+import { DetailView } from "./components/DetailView";
+import { Toolbar, type Filter } from "./components/Toolbar";
+import type { BatchEntry } from "./downloads/types";
+import { useDownloads } from "./downloads/useDownloads";
+import { PanelHostContext, type PanelHost } from "./host";
+import { PanelI18nProvider, type Translate } from "./i18n";
+import { useEffectiveInstalled, useInstalled } from "./install/useInstalled";
+import { formatCount } from "./releases/format";
+import { useReleases } from "./releases/useReleases";
+import type { CatalogApp } from "./catalog/types";
+import "./panel.css";
+
+export interface CentralPanelProps {
+  /** The host's translate function; must resolve the panel's `fcp-*` keys. */
+  t: Translate;
+  /** The host's active locale (BCP 47), for number/date formatting. */
+  locale: string;
+  /** Shell actions only the host can perform. */
+  host: PanelHost;
+  /** Catalog ids to hide — e.g. the host app itself. */
+  excludeIds?: readonly string[];
+}
+
+function matchesFilter(app: CatalogApp, filter: Filter): boolean {
+  return filter === "all" ? true : app.status === filter;
+}
+
+export function CentralPanel({ t, locale, host, excludeIds }: CentralPanelProps) {
+  const catalog = useCatalog();
+  const apps = useMemo(
+    () =>
+      excludeIds && excludeIds.length > 0
+        ? catalog.apps.filter((a) => !excludeIds.includes(a.id))
+        : catalog.apps,
+    [catalog.apps, excludeIds],
+  );
+  const releases = useReleases(apps);
+  const installed = useInstalled(apps);
+  const downloads = useDownloads();
+
+  // One manual Refresh re-checks both the live release data and what's installed.
+  const refreshAll = useCallback(() => {
+    releases.refresh();
+    installed.refresh();
+  }, [releases, installed]);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selected = apps.find((a) => a.id === selectedId) ?? null;
+  const visible = useMemo(() => apps.filter((a) => matchesFilter(a, filter)), [apps, filter]);
+
+  // The install map the cards and detail view read: the probe merged with this
+  // session's real installs (the hook also re-probes when install runs settle).
+  const mergedInstalled = useEffectiveInstalled(installed, releases.byId, downloads);
+
+  // Everything Download & install all would fetch: each available app whose
+  // release ships an installer for this machine (FC-32). Depends on
+  // installerFor (a stable callback that changes only with the platform), NOT
+  // the whole downloads object — which changes identity on every progress event.
+  const { installerFor } = downloads;
+  const downloadAllEntries = useMemo<BatchEntry[]>(() => {
+    const entries: BatchEntry[] = [];
+    for (const app of apps) {
+      const asset = installerFor(app, releases.byId.get(app.id));
+      if (asset) entries.push({ appId: app.id, asset });
+    }
+    return entries;
+  }, [apps, releases.byId, installerFor]);
+
+  return (
+    <PanelI18nProvider t={t} locale={locale}>
+      <PanelHostContext.Provider value={host}>
+        <div className="fcp-root">
+          {selected ? (
+            <DetailView
+              app={selected}
+              release={releases.byId.get(selected.id)}
+              installedVersion={mergedInstalled.get(selected.id)}
+              downloads={downloads}
+              onBack={() => setSelectedId(null)}
+            />
+          ) : (
+            <>
+              <Toolbar
+                filter={filter}
+                onFilter={setFilter}
+                downloads={downloads}
+                entries={downloadAllEntries}
+              />
+              {catalog.loaded && catalog.source === "bundled" && (
+                <p className="offline-note">{t("fcp-status-offline")}</p>
+              )}
+              <div className="brand-total">
+                {releases.grandTotal !== null && (
+                  <span className="brand-total-count">
+                    {t("fcp-downloads-brandwide", {
+                      count: formatCount(locale, releases.grandTotal),
+                    })}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="link-btn"
+                  onClick={refreshAll}
+                  disabled={releases.loading || installed.loading}
+                >
+                  {t("fcp-refresh")}
+                </button>
+              </div>
+              <CardGrid
+                apps={visible}
+                releases={releases.byId}
+                installed={mergedInstalled}
+                downloads={downloads.byId}
+                onOpen={(a) => setSelectedId(a.id)}
+              />
+            </>
+          )}
+        </div>
+      </PanelHostContext.Provider>
+    </PanelI18nProvider>
+  );
+}

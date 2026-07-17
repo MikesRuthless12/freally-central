@@ -1,8 +1,9 @@
 import { useEffect, type ReactNode } from "react";
-import { useT } from "../i18n";
 
 interface ModalProps {
   title: string;
+  /** Localized label for the ✕ close button (accessibility name). */
+  closeLabel: string;
   onClose: () => void;
   children: ReactNode;
   wide?: boolean;
@@ -10,9 +11,9 @@ interface ModalProps {
 
 // Shared modal shell (Central's equivalent of Capture's PickerShell): overlay,
 // titled header with a close button, Escape-to-close, click-outside-to-close.
-export function Modal({ title, onClose, children, wide }: ModalProps) {
-  const t = useT();
-
+// Purely presentational — callers pass the localized close label, so it works
+// both inside the panel and in a host app's own dialogs.
+export function Modal({ title, closeLabel, onClose, children, wide }: ModalProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -32,12 +33,7 @@ export function Modal({ title, onClose, children, wide }: ModalProps) {
       >
         <div className="modal-head">
           <h2 className="modal-title">{title}</h2>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={onClose}
-            aria-label={t("detail-back")}
-          >
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={closeLabel}>
             ✕
           </button>
         </div>

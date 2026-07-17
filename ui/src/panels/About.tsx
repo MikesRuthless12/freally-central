@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { buildInfo, openExternal } from "../api/commands";
 import type { BuildInfo } from "../api/types";
-import { Modal } from "../components/Modal";
+import { Modal } from "../panel/components/Modal";
 import { useT } from "../i18n";
 
 interface AboutDialogProps {
@@ -32,7 +32,7 @@ export function AboutDialog({ onClose, onCheckUpdates }: AboutDialogProps) {
   }, []);
 
   return (
-    <Modal title={t("about-title")} onClose={onClose} wide>
+    <Modal title={t("about-title")} closeLabel={t("modal-close")} onClose={onClose} wide>
       <div className="about">
         <div className="about-brand">
           <span className="about-name">{t("app-name")}</span>

@@ -51,7 +51,7 @@ pub struct DetectResult {
 /// awaits this, keeps its refresh spinner live and never freezes). FC-20's
 /// "detection never blocks the UI" is satisfied here at the backend boundary.
 #[tauri::command]
-pub async fn detect_installed(apps: Vec<DetectQuery>) -> Vec<DetectResult> {
+pub async fn central_detect_installed(apps: Vec<DetectQuery>) -> Vec<DetectResult> {
     tauri::async_runtime::spawn_blocking(move || detect_all(&apps))
         .await
         .unwrap_or_default()

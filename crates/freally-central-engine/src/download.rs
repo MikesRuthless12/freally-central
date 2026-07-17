@@ -158,7 +158,7 @@ impl Drop for Registration<'_> {
 /// state from the channel alone). Concurrent invocations are independent — the
 /// bounded queue for Download All lives in the UI.
 #[tauri::command]
-pub async fn start_download(
+pub async fn central_start_download(
     request: DownloadRequest,
     on_event: Channel<DownloadEvent>,
     downloads: State<'_, Downloads>,
@@ -206,7 +206,7 @@ fn emit(channel: &Channel<DownloadEvent>, event: DownloadEvent) {
 /// Cancel a running download by app id. The transfer stops at the next chunk;
 /// the partial file is kept so a retry can resume.
 #[tauri::command]
-pub fn cancel_download(id: String, downloads: State<'_, Downloads>) {
+pub fn central_cancel_download(id: String, downloads: State<'_, Downloads>) {
     if let Ok(map) = downloads.0.lock() {
         if let Some(flag) = map.get(&id) {
             flag.store(true, Ordering::Relaxed);

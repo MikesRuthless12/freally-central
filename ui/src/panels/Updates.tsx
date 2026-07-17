@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
-import { Modal } from "../components/Modal";
+import { Modal } from "../panel/components/Modal";
 import { useT } from "../i18n";
 
 type Phase =
@@ -65,7 +65,7 @@ export function UpdatesDialog({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <Modal title={t("updates-title")} onClose={onClose} wide>
+    <Modal title={t("updates-title")} closeLabel={t("modal-close")} onClose={onClose} wide>
       <div className="updates">
         {phase.kind === "checking" && <p className="muted">{t("updates-checking")}</p>}
 

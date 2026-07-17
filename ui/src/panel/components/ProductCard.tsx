@@ -46,7 +46,7 @@ export function ProductCard({ app, release, installedVersion, download, onOpen }
       <div className="card-foot">
         <div className="card-foot-row">
           <span className={soon ? "pill pill--soon" : "pill pill--view"}>
-            {soon ? t("coming-soon") : t("card-download")}
+            {soon ? t("fcp-coming-soon") : t("fcp-card-download")}
           </span>
           {status && <StatusBadge status={status} />}
         </div>
@@ -56,14 +56,14 @@ export function ProductCard({ app, release, installedVersion, download, onOpen }
             {" · "}
             {/* Pass the number (not a preformatted string) so Fluent selects the
                 right plural form and formats it for the active locale. */}
-            {t("downloads-count", { count: live.totalDownloads })}
+            {t("fcp-downloads-count", { count: live.totalDownloads })}
           </p>
         )}
         {(downloading || installing) && (
           <div className="card-progress">
             <ProgressBar
               fraction={stateFraction(download)}
-              label={t(installing ? "install-progress-label" : "dl-progress-label", {
+              label={t(installing ? "fcp-install-progress-label" : "fcp-dl-progress-label", {
                 name: app.name,
               })}
               percentClassName="card-progress-percent"

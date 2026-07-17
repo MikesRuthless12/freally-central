@@ -1,28 +1,10 @@
 # Freally Central — UI strings (hi)
-# Keys must stay in sync across all locales (npm run i18n:lint).
 
+# Keys must stay in sync across all locales (npm run i18n:lint).
 app-name = Freally Central
 app-tagline = हर Freally ऐप के लिए एक हब।
-filter-type = प्रकार
-filter-all = सभी
-available = उपलब्ध
-coming-soon = जल्द आ रहा है
-install-all = सभी डाउनलोड और इंस्टॉल करें
-install-all-hint = इस कंप्यूटर के लिए हर उपलब्ध ऐप डाउनलोड करके चुपचाप इंस्टॉल करता है।
-install-all-unsupported = इंस्टॉल करने के लिए Freally Central डेस्कटॉप ऐप चाहिए।
-install-all-none = अभी कोई डाउनलोड करने योग्य ऐप नहीं है।
 language = भाषा
 theme-toggle = थीम बदलें
-card-view = देखें
-detail-back = वापस
-detail-features = विशेषताएं
-detail-started = प्रारंभ { $date }
-detail-visit-site = साइट देखें
-detail-no-features = विशेषताओं का विवरण जल्द आ रहा है।
-detail-coming-soon-note = यह ऐप अभी डाउनलोड के लिए उपलब्ध नहीं है।
-status-loading = कैटलॉग लोड हो रहा है…
-status-offline = ऑफ़लाइन — बंडल किया गया कैटलॉग दिखाया जा रहा है।
-grid-empty = इस फ़िल्टर से मेल खाने वाला कोई ऐप नहीं है।
 eula-title = अंतिम-उपयोगकर्ता लाइसेंस अनुबंध
 eula-intro = जारी रखने के लिए लाइसेंस पढ़ें और स्वीकार करें।
 eula-accept = स्वीकार करें और जारी रखें
@@ -69,89 +51,5 @@ updates-restart-now = अभी पुनरारंभ करें
 updates-restart-later = बाद में
 updates-try-again = फिर प्रयास करें
 
-# --- Live release data (Phase 2) ---
-downloads-count = { $count } डाउनलोड
-downloads-total = कुल
-downloads-brandwide = Freally ऐप्स { $count } बार डाउनलोड हुए
-downloads-unavailable = डाउनलोड संख्याएँ अभी उपलब्ध नहीं हैं।
-detail-released = { $date } को जारी किया गया
-detail-downloads = डाउनलोड
-detail-whats-new = नया क्या है
-refresh = रीफ़्रेश करें
-changelog-heading = { $name } में नया क्या है
-changelog-version = संस्करण { $version } · { $date }
-changelog-empty = अभी तक कोई रिलीज़ नोट नहीं।
-changelog-view-full = पूरा चेंजलॉग देखें
-changelog-view-release = GitHub पर देखें
-
-# --- Per-app taglines (localized catalog copy) ---
-card-download = डाउनलोड करें
-tagline-freally-capture = स्टूडियो की तरह रिकॉर्ड और स्ट्रीम करें — एक साफ़ ऐप।
-tagline-freally-vault = आपके पासवर्ड, पासकी और राज़ — एन्क्रिप्टेड, लोकल-फर्स्ट, आपके।
-tagline-freally-player = कुछ भी चलाएँ। खूबसूरती से। कोई विज्ञापन नहीं, कोई स्पाईवेयर नहीं।
-tagline-freally-av = Freally Anti-Virus — जल्द आ रहा है।
-tagline-freally-studio = एक AI-सहायता प्राप्त म्यूज़िक स्टूडियो — जल्द आ रहा है।
-tagline-freally-sourcerer = एक आगामी Freally ऐप।
-tagline-freally-file-manager = एक क्रॉस-प्लेटफ़ॉर्म फ़ाइल मैनेजर — जल्द आ रहा है।
-
-# --- Per-app descriptions & features (localized catalog copy) ---
-desc-freally-capture = एक लोकल-फर्स्ट, क्रॉस-प्लेटफ़ॉर्म लाइव-स्ट्रीमिंग और रिकॉर्डिंग स्टूडियो (OBS-श्रेणी): रीयल-टाइम GPU सीन कंपोज़िटर, मल्टी-ट्रैक रिकॉर्डिंग, और एक साथ हर प्लेटफ़ॉर्म पर मल्टीस्ट्रीम — पूरी तरह आपकी मशीन पर। कोई खाता नहीं, कोई टेलीमेट्री नहीं, कोई क्लाउड नहीं।
-desc-freally-vault = एक लोकल-फर्स्ट, ज़ीरो-नॉलेज, एंड-टू-एंड एन्क्रिप्टेड पासवर्ड, पासकी और सीक्रेट्स मैनेजर। KeePass-संगत, मेमोरी-सेफ़ Rust कोर, पूरी तरह मुफ़्त — आपकी वॉल्ट कभी आपकी मशीन नहीं छोड़ती।
-desc-freally-player = एक लोकल-फर्स्ट, क्रॉस-प्लेटफ़ॉर्म मीडिया प्लेयर जो हार्डवेयर एक्सेलेरेशन के साथ लगभग कुछ भी चलाता है — एक आधुनिक UI, एक असली मीडिया लाइब्रेरी, और स्ट्रीमिंग, बिना विज्ञापन और बिना टेलीमेट्री।
-desc-freally-av = Windows, macOS और Linux के लिए Freally का लोकल-फर्स्ट एंटी-वायरस। रास्ते में — अभी डाउनलोड के लिए उपलब्ध नहीं।
-desc-freally-studio = 35+ शैलियों में AI पैटर्न जनरेशन, FL-शैली मिक्सर, अरेंजमेंट टाइमलाइन, और ऑडियो-क्लिप एडिटर के साथ एक पूर्ण-सुविधा वाला DAW। प्री-रिलीज़ — अभी डाउनलोड के लिए उपलब्ध नहीं।
-desc-freally-sourcerer = यह Freally-ब्रांड ऐप रास्ते में है। अभी डाउनलोड के लिए उपलब्ध नहीं।
-desc-freally-file-manager = यह Freally-ब्रांड ऐप रास्ते में है। अभी डाउनलोड के लिए उपलब्ध नहीं।
-feat-freally-capture-1 = प्रति-सोर्स फ़िल्टर और ट्रांज़िशन के साथ स्वामित्व वाला wgpu GPU सीन कंपोज़िटर
-feat-freally-capture-2 = मल्टी-ट्रैक रिकॉर्डिंग (हार्डवेयर एन्कोडर + स्वामित्व वाला लॉसलेस कोडेक)
-feat-freally-capture-3 = एक साथ Twitch/YouTube/Kick पर मल्टीस्ट्रीम (RTMP/SRT/WHIP)
-feat-freally-capture-4 = वर्चुअल कैमरा, रीप्ले बफ़र, डाउनस्ट्रीम कीयर, और 3D ट्रांसफ़ॉर्म
-feat-freally-capture-5 = 18-भाषा UI
-
-# --- Install status & actions (Phase 3) ---
-status-installed = इंस्टॉल किया गया
-status-update = अपडेट उपलब्ध है
-status-not-installed = इंस्टॉल नहीं है
-action-install = इंस्टॉल करें
-action-update = अपडेट करें
-action-redownload = फिर से डाउनलोड करें
-
-# --- Downloads & live progress (Phase 4) ---
-dl-downloading = डाउनलोड हो रहा है…
-dl-verifying = सत्यापित हो रहा है…
-dl-done-verified = डाउनलोड और सत्यापित
-dl-done-size-only = डाउनलोड हुआ (आकार जाँचा गया)
-dl-failed = डाउनलोड विफल।
-dl-failed-network = डाउनलोड विफल — नेटवर्क त्रुटि।
-dl-failed-verify = सत्यापन विफल — फ़ाइल हटा दी गई।
-dl-failed-busy = इस ऐप का डाउनलोड पहले से चल रहा है।
-dl-canceled = डाउनलोड रद्द किया गया।
-dl-cancel = रद्द करें
-dl-retry = पुनः प्रयास करें
-dl-progress-label = { $name } की डाउनलोड प्रगति
-dl-show-in-folder = फ़ोल्डर में दिखाएँ
-batch-progress = { $total } में से { $done } डाउनलोड हुए
-batch-cancel-all = सभी रद्द करें
-batch-done = सभी डाउनलोड पूर्ण।
-batch-failed = { $total } में से { $failed } डाउनलोड विफल रहे।
-batch-canceled = { $total } में से { $canceled } डाउनलोड रद्द किए गए।
-
-# --- Silent install (Phase 5) ---
-dl-installing = इंस्टॉल हो रहा है…
-install-progress-label = { $name } की इंस्टॉल प्रगति
-install-done = इंस्टॉल किया गया ✓
-install-canceled = इंस्टॉल रद्द किया गया।
-install-failed = इंस्टॉल विफल रहा।
-install-failed-not-downloaded = इंस्टॉल करने से पहले ऐप डाउनलोड करें।
-install-failed-not-verified = यह इंस्टॉलर साइलेंट इंस्टॉल के लिए सत्यापित नहीं है — इसे चलाया नहीं गया।
-install-failed-verify = सत्यापन विफल रहा — इंस्टॉलर अस्वीकार कर दिया गया।
-install-failed-unsupported = इस प्रकार का इंस्टॉलर इस कंप्यूटर पर चुपचाप इंस्टॉल नहीं हो सकता।
-install-failed-installer = इंस्टॉलर ने एक त्रुटि बताई।
-install-failed-elevation = व्यवस्थापक अनुमति अस्वीकार कर दी गई।
-install-failed-busy = एक इंस्टॉल पहले से चल रहा है।
-open-app = खोलें
-open-failed = { $name } खोला नहीं जा सका।
-batch-installing = इंस्टॉल हो रहा है… { $total } में से { $done } इंस्टॉल हुए
-batch-installed = सभी ऐप्स इंस्टॉल हो गए।
-batch-install-failed = { $total } में से { $failed } इंस्टॉल विफल रहे।
-batch-install-canceled = { $total } में से { $canceled } इंस्टॉल रद्द किए गए।
+# --- Shared modal chrome ---
+modal-close = बंद करें

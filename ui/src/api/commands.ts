@@ -13,16 +13,6 @@ export function releaseNotes(): Promise<ReleaseNotes> {
 }
 
 /**
- * Launch an installed catalog app (FC-42 "Open"). The backend only launches
- * what an installer actually recorded on this machine (uninstall registry /
- * `open -a` / package binary or AppImage) — rejects when the app isn't found,
- * so callers must surface that honestly.
- */
-export function launchApp(id: string, name: string): Promise<void> {
-  return invoke("launch_app", { id, name });
-}
-
-/**
  * A plain `<a target="_blank">` doesn't reach the OS browser from a Tauri
  * webview, so hand the URL to the opener plugin. Falls back to window.open when
  * running in a plain browser (dev/test).

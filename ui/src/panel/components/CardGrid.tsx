@@ -17,7 +17,7 @@ interface CardGridProps {
 export function CardGrid({ apps, releases, installed, downloads, onOpen }: CardGridProps) {
   const t = useT();
   if (apps.length === 0) {
-    return <p className="grid-empty">{t("grid-empty")}</p>;
+    return <p className="fcp-grid-empty">{t("fcp-grid-empty")}</p>;
   }
   return (
     <div className="grid">
