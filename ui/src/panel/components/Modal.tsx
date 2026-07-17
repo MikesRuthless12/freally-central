@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import { useFocusTrap } from "../useFocusTrap";
 
 interface ModalProps {
   title: string;
@@ -10,33 +11,24 @@ interface ModalProps {
 }
 
 // Shared modal shell (Central's equivalent of Capture's PickerShell): overlay,
-// titled header with a close button, Escape-to-close, click-outside-to-close.
-// Purely presentational — callers pass the localized close label, so it works
-// both inside the panel and in a host app's own dialogs.
+// titled header with a close button, click-outside-to-close, plus the shared
+// focus trap (FC-61) that moves focus in on open, keeps Tab within the dialog,
+// closes on Escape, and restores focus on close. Purely presentational —
+// callers pass the localized close label, so it works both inside the panel and
+// in a host app's own dialogs.
 export function Modal({ title, closeLabel, onClose, children, wide }: ModalProps) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !e.defaultPrevented) {
-        // This modal is the topmost layer, so the key belongs to it alone:
-        // claim it in the capture phase (before any host shell's listener)
-        // and mark it consumed — a host dialog hosting the panel must ignore
-        // Escape when defaultPrevented (see EMBEDDING.md).
-        e.preventDefault();
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, onClose);
 
   return (
     <div className="modal-overlay" role="presentation" onClick={onClose}>
       <div
+        ref={dialogRef}
         className={wide ? "modal modal--wide" : "modal"}
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-head">

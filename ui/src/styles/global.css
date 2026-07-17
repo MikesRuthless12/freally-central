@@ -34,6 +34,10 @@
   --fcp-accent-1: var(--accent-1);
   --fcp-accent-2: var(--accent-2);
   --fcp-accent: var(--accent);
+  /* Text/foreground on the accent gradient — dark in both themes, since the
+     accent stays a bright teal→blue. Mapped here so the theme owns it rather
+     than leaving the panel's built-in fallback to decide. */
+  --fcp-on-accent: #04121a;
   --fcp-ok: var(--ok);
   --fcp-warn: var(--warn);
   --fcp-err: var(--err);

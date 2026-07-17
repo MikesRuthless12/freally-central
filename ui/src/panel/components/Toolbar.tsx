@@ -2,6 +2,7 @@ import { useT } from "../i18n";
 import type { BatchEntry } from "../downloads/types";
 import type { BatchSummary, DownloadsApi } from "../downloads/useDownloads";
 import { batchProgress, installProgress } from "../downloads/progress";
+import { LiveRegion } from "./LiveRegion";
 import { ProgressBar } from "./ProgressBar";
 
 export type Filter = "all" | "available" | "coming-soon";
@@ -73,8 +74,14 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
     return installTotal > 0 ? t("fcp-batch-installed") : t("fcp-batch-done");
   };
 
+  const settled = batch.status === "settled" && batch.summary ? settledLabel(batch.summary) : "";
+
   return (
     <div className="toolbar">
+      {/* Announces the Download-All outcome once the batch settles (the running
+          % is conveyed by the bar, not here). */}
+      <LiveRegion message={settled} />
+
       <div className="toolbar-row">
         <button
           type="button"

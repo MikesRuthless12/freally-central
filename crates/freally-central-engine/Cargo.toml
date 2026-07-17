@@ -1,6 +1,6 @@
 [package]
 name = "freally-central-engine"
-version = "0.6.0"
+version = "0.7.0"
 description = "Detect/download/install/launch engine behind the Freally Central panel, reusable by any Freally host app."
 authors = ["Mike Weaver (Havoc Software)"]
 license = "SEE LICENSE IN LICENSE"

@@ -21,8 +21,31 @@
     </header>
 
     <main>
-      <!-- Phase 6 -->
+      <!-- Phase 7 -->
       <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">v0.7.0</span>
+            <span class="date">Phase 7 — polish, distribution &amp; auto-update</span>
+          </div>
+        </div>
+        <h2>0.7.0 — Phase 7</h2>
+        <p class="summary">
+          Central now ships the way the rest of the brand does: a <strong>signed self-updater</strong>
+          that resolves on every OS, an accessibility &amp; reduced-motion pass, and a public
+          download page with real per-OS counts.
+        </p>
+        <ul class="features">
+          <li><strong>In-app auto-update, all three OSes</strong> — the release now publishes one consolidated signed <code>latest.json</code> covering Windows, macOS (Intel + Apple Silicon) and Linux, so <em>Settings → Check for updates</em> resolves and verifies every download against the key baked into the app.</li>
+          <li><strong>Accessibility</strong> — dialogs move, trap and restore keyboard focus and close on Escape, the first-run agreement is fully keyboard-operable, progress and status changes are announced to screen readers, and every control shows a visible keyboard focus ring.</li>
+          <li><strong>Reduced motion</strong> — animations and transitions are neutralized for anyone whose system asks for reduced motion.</li>
+          <li><strong>Light &amp; dark</strong> — both themes verified end to end, down to native scrollbars and form controls that now follow the chosen theme.</li>
+          <li><strong>Public download page</strong> — per-OS installer buttons for Windows, macOS and Linux beside the real, auto-incrementing GitHub download counter.</li>
+        </ul>
+      </article>
+
+      <!-- Phase 6 -->
+      <article class="release">
         <div class="release-head">
           <div class="meta">
             <span class="badge">v0.6.0</span>

@@ -23,6 +23,10 @@ export function useTheme() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    // Keep the UA (scrollbars, native form controls, autofill) in step with the
+    // theme; index.html's static color-scheme meta only sets the first-paint
+    // default, so drive it at runtime here (FC-61).
+    document.documentElement.style.colorScheme = theme;
     try {
       localStorage.setItem(STORAGE_KEY, theme);
     } catch {

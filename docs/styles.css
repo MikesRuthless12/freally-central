@@ -371,3 +371,16 @@ footer a:hover {
 
 /* Enlarged hero logo so the app icon is visible and readable (>= 284px). */
 .hero .logo { width: 288px; max-width: 72vw; height: auto; }
+
+/* Respect a reduced-motion preference: neutralise the site's hover transitions
+   (download menu, cards, chevron) for anyone who asks their system for it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

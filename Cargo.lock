@@ -1109,7 +1109,7 @@ dependencies = [
 
 [[package]]
 name = "freally-central"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "freally-central-engine",
  "serde",
@@ -1123,7 +1123,7 @@ dependencies = [
 
 [[package]]
 name = "freally-central-engine"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "futures-util",
  "hex",
