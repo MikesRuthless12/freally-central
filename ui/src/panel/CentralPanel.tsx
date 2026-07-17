@@ -26,23 +26,18 @@ export interface CentralPanelProps {
   locale: string;
   /** Shell actions only the host can perform. */
   host: PanelHost;
-  /** Catalog ids to hide — e.g. the host app itself. */
-  excludeIds?: readonly string[];
 }
 
 function matchesFilter(app: CatalogApp, filter: Filter): boolean {
   return filter === "all" ? true : app.status === filter;
 }
 
-export function CentralPanel({ t, locale, host, excludeIds }: CentralPanelProps) {
+// The full catalog renders in every host — including the host app itself,
+// whose card then honestly shows Installed ✓ / Update available. Hiding apps
+// here would also skew the brand-wide download total, which must stay real.
+export function CentralPanel({ t, locale, host }: CentralPanelProps) {
   const catalog = useCatalog();
-  const apps = useMemo(
-    () =>
-      excludeIds && excludeIds.length > 0
-        ? catalog.apps.filter((a) => !excludeIds.includes(a.id))
-        : catalog.apps,
-    [catalog.apps, excludeIds],
-  );
+  const apps = catalog.apps;
   const releases = useReleases(apps);
   const installed = useInstalled(apps);
   const downloads = useDownloads();
