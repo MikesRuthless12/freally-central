@@ -95,6 +95,11 @@ the rollout (and from the brand-wide counter) until its own roadmap exists.
    opens it. The two host-side strings (menu label + dialog title) are the
    host's own keys, localized in its 18 catalogs.
 
+   **Escape contract:** the panel's own modals (the changelog viewer) claim
+   Escape in the capture phase and call `preventDefault()`. A host dialog
+   wrapping the panel must ignore Escape events with `defaultPrevented`, so
+   one keypress closes only the topmost layer.
+
 6. **CSP** — the panel fetches release data and the hosted manifest from the
    webview; downloads/installs run in Rust. Add exactly:
    - `connect-src`: `https://api.github.com https://mikesruthless12.github.io`

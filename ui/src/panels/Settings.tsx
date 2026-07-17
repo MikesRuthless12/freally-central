@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal } from "../panel/components/Modal";
+import { Modal } from "../panel";
 import { useI18n, useT } from "../i18n";
 import { localeName } from "../i18n/localeNames";
 import type { Theme } from "../theme";

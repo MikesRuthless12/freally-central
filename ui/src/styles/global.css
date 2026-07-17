@@ -125,22 +125,6 @@ button {
   gap: 10px;
 }
 
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  cursor: pointer;
-  font-size: 1rem;
-}
-.icon-btn:hover {
-  border-color: var(--accent);
-}
-
 .main {
   flex: 1;
   width: min(1200px, 100%);
@@ -148,69 +132,9 @@ button {
   padding: 20px;
 }
 
-/* ---------- Buttons ---------- */
-.btn {
-  padding: 8px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  cursor: pointer;
-}
-.btn:hover {
-  border-color: var(--accent);
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn-primary {
-  border: none;
-  color: #04121a;
-  font-weight: 700;
-  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-}
-.btn-ghost {
-  background: transparent;
-}
-
-/* ---------- Modal ---------- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(3, 6, 12, 0.6);
-}
-.modal {
-  width: min(460px, 100%);
-  max-height: 88vh;
-  overflow: auto;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-}
-.modal--wide {
-  width: min(620px, 100%);
-}
-.modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--border);
-}
-.modal-title {
-  margin: 0;
-  font-size: 1.1rem;
-}
-.modal-body {
-  padding: 18px;
-}
+/* Buttons, modals, .icon-btn/.link-btn/.muted chrome: everything under #root
+   carries the fcp-root scope (ui/index.html), so the panel's own stylesheet
+   (src/panel/panel.css) styles the shared chrome once — no second copy here. */
 
 /* ---------- Settings / About / What's New / Updates ---------- */
 .settings {
@@ -287,19 +211,6 @@ button {
   flex-wrap: wrap;
   gap: 8px;
 }
-.link-btn {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.link-btn:hover {
-  color: var(--text);
-  border-color: var(--accent);
-}
 .about-foot {
   display: flex;
   align-items: center;
@@ -318,9 +229,6 @@ button {
 }
 .ok {
   color: var(--ok);
-}
-.muted {
-  color: var(--muted);
 }
 .mono {
   font-family: ui-monospace, "Cascadia Code", monospace;

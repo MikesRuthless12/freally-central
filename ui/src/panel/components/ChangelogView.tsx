@@ -23,7 +23,7 @@ export function ChangelogView({ app, release, onClose }: ChangelogViewProps) {
   return (
     <Modal title={t("fcp-whats-new-title")} closeLabel={t("fcp-modal-close")} onClose={onClose} wide>
       <div className="changelog">
-        <p className="fcp-changelog-heading">{t("fcp-changelog-heading", { name: app.name })}</p>
+        <p className="changelog-heading">{t("fcp-changelog-heading", { name: app.name })}</p>
         <p className="muted changelog-version">
           {t("fcp-changelog-version", { version: release.version, date })}
         </p>

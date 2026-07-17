@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { releaseNotes } from "../api/commands";
 import type { ReleaseNotes } from "../api/types";
-import { Modal } from "../panel/components/Modal";
+import { Modal } from "../panel";
 import { useT } from "../i18n";
 
 // Settings → What's New: the running build's changelog section, shown in-app.

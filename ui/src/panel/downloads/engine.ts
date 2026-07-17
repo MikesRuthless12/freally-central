@@ -1,5 +1,5 @@
 // The engine boundary: production downloads run in the Rust backend
-// (src-tauri/src/download.rs) over an IPC channel; tests inject a scripted
+// (crates/freally-central-engine/src/download.rs) over an IPC channel; tests inject a scripted
 // engine + platform via window.__FC_TEST__ so the download flows are drivable
 // outside the Tauri shell (vitest, Playwright). The injection is test-only —
 // nothing in the app ever sets it.

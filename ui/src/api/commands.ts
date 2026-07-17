@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
+import { isSafeHttpUrl } from "../panel";
 import type { BuildInfo, ReleaseNotes } from "./types";
 
 // Build metadata for the About panel (from src-tauri/src/commands.rs).
@@ -35,13 +36,7 @@ export async function revealInFolder(path: string): Promise<void> {
 }
 
 export async function openExternal(url: string): Promise<void> {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return; // not an absolute URL — nothing safe to open
-  }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
+  if (!isSafeHttpUrl(url)) return;
   try {
     await openUrl(url);
   } catch {

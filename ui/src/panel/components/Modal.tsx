@@ -16,10 +16,18 @@ interface ModalProps {
 export function Modal({ title, closeLabel, onClose, children, wide }: ModalProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !e.defaultPrevented) {
+        // This modal is the topmost layer, so the key belongs to it alone:
+        // claim it in the capture phase (before any host shell's listener)
+        // and mark it consumed — a host dialog hosting the panel must ignore
+        // Escape when defaultPrevented (see EMBEDDING.md).
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
     };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
   return (

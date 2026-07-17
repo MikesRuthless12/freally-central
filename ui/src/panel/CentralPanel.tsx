@@ -40,6 +40,9 @@ export function CentralPanel({ t, locale, host }: CentralPanelProps) {
   const apps = catalog.apps;
   const releases = useReleases(apps);
   const installed = useInstalled(apps);
+  // useDownloads owns the engine channels AND their teardown: unmounting the
+  // panel (a host may render it in a closable dialog) cancels in-flight work
+  // so nothing runs unobserved.
   const downloads = useDownloads();
 
   // One manual Refresh re-checks both the live release data and what's installed.

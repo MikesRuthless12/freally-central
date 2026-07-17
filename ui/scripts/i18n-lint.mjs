@@ -68,18 +68,26 @@ for (const set of catalogSets) {
   }
 }
 
-// Both sets must ship the same locales.
-const [a, b] = localeLists;
-if (a.locales.join(",") !== b.locales.join(",")) {
-  problems++;
-  console.error(`  ✗ locale lists differ: ${a.name}=[${a.locales}] vs ${b.name}=[${b.locales}]`);
+// Every set must ship the same locales, and no two sets may define a key.
+const [first, ...restLists] = localeLists;
+for (const other of restLists) {
+  if (first.locales.join(",") !== other.locales.join(",")) {
+    problems++;
+    console.error(
+      `  ✗ locale lists differ: ${first.name}=[${first.locales}] vs ${other.name}=[${other.locales}]`,
+    );
+  }
 }
-
-// The sets must never define the same key.
-const overlap = [...enSets[0].en].filter((k) => enSets[1].en.has(k));
-if (overlap.length) {
-  problems++;
-  console.error(`  ✗ keys defined in both app and panel catalogs: ${overlap.join(", ")}`);
+for (let i = 0; i < enSets.length; i++) {
+  for (let j = i + 1; j < enSets.length; j++) {
+    const overlap = [...enSets[i].en].filter((k) => enSets[j].en.has(k));
+    if (overlap.length) {
+      problems++;
+      console.error(
+        `  ✗ keys defined in both ${enSets[i].name} and ${enSets[j].name} catalogs: ${overlap.join(", ")}`,
+      );
+    }
+  }
 }
 
 // Coverage: keys referenced in source must exist in en (either set).
@@ -102,5 +110,5 @@ if (problems) {
 }
 const total = enSets.reduce((n, { en }) => n + en.size, 0);
 console.log(
-  `ok — ${a.locales.length} locales × 2 catalog sets, ${total} keys, parity + coverage green`,
+  `ok — ${first.locales.length} locales × ${catalogSets.length} catalog sets, ${total} keys, parity + coverage green`,
 );

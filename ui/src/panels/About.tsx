@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { buildInfo, openExternal } from "../api/commands";
 import type { BuildInfo } from "../api/types";
-import { Modal } from "../panel/components/Modal";
+import { Modal } from "../panel";
 import { useT } from "../i18n";
 
 interface AboutDialogProps {

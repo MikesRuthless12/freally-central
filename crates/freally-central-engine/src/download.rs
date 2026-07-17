@@ -475,8 +475,20 @@ async fn stream_remainder(
 
 /// Where installers land: a dedicated folder under the OS temp dir. Phase 5
 /// executes verified installers from here.
+///
+/// Namespaced per host binary: the engine runs inside Freally Central AND
+/// inside host apps embedding the panel (FC-50), as separate processes whose
+/// in-process `Downloads` registries can't see each other — one shared dir
+/// would let two processes interleave writes into the same `.part` file.
+/// The same host keeps its dir across runs, so resume still works.
 fn download_dir() -> PathBuf {
-    std::env::temp_dir().join("freally-central-downloads")
+    let host = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.file_stem().map(|s| s.to_string_lossy().into_owned()))
+        .unwrap_or_else(|| "host".to_string());
+    std::env::temp_dir()
+        .join("freally-central-downloads")
+        .join(host)
 }
 
 /// One shared HTTP client for every download: reqwest clients are built to be

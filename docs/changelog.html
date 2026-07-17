@@ -21,8 +21,32 @@
     </header>
 
     <main>
-      <!-- Phase 5 -->
+      <!-- Phase 6 -->
       <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">v0.6.0</span>
+            <span class="date">Phase 6 — "Central inside", the embeddable panel</span>
+          </div>
+        </div>
+        <h2>0.6.0 — Phase 6</h2>
+        <p class="summary">
+          The whole hub is now an <strong>embeddable panel</strong> any Freally app can ship under a
+          "More Freally apps" entry — the card grid, detail view, live release data, install
+          detection, and the verified download → <strong>silent-install</strong> flow, with
+          <strong>no copy of the business logic</strong>. Freally Capture ships it first.
+        </p>
+        <ul class="features">
+          <li><strong>One implementation, everywhere</strong> — hosts vendor the Central repo as a git submodule; one pinned commit supplies both the React panel and the Rust engine crate, and Central itself runs on exactly the same code.</li>
+          <li><strong>Freally Capture embed</strong> — Help → <strong>More Freally apps</strong> opens the panel inside Capture, themed by Capture's own tokens (light/dark follows the host).</li>
+          <li><strong>Localized through the host</strong> — the panel's strings ship as <code>fcp-*</code> catalogs in all 18 languages and load into the host app's own Fluent bundles.</li>
+          <li><strong>The trust gate rides along</strong> — required published SHA-256, the compile-time owner allowlist, and the install-time re-hash apply identically inside every host.</li>
+          <li><strong>EMBEDDING.md</strong> — the drop-in checklist for rolling the panel out across the rest of the brand.</li>
+        </ul>
+      </article>
+
+      <!-- Phase 5 -->
+      <article class="release">
         <div class="release-head">
           <div class="meta">
             <span class="badge">v0.5.0</span>

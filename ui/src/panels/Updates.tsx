@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
-import { Modal } from "../panel/components/Modal";
+import { Modal } from "../panel";
 import { useT } from "../i18n";
 
 type Phase =

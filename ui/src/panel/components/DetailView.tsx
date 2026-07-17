@@ -132,10 +132,10 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
             {status && <StatusBadge status={status} />}
             {live && <span className="detail-version">v{live.version}</span>}
             {app.startedDate && (
-              <span className="fcp-detail-started">{t("fcp-detail-started", { date: app.startedDate })}</span>
+              <span className="detail-started">{t("fcp-detail-started", { date: app.startedDate })}</span>
             )}
             {releasedDate && (
-              <span className="fcp-detail-started">{t("fcp-detail-released", { date: releasedDate })}</span>
+              <span className="detail-started">{t("fcp-detail-released", { date: releasedDate })}</span>
             )}
           </div>
         </div>
@@ -146,7 +146,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
       {live && (
         <>
           <h3 className="detail-section-title">{t("fcp-detail-downloads")}</h3>
-          <dl className="fcp-detail-downloads">
+          <dl className="detail-downloads">
             {OS_ROWS.map(({ key, label }) => {
               const count = live.perOs[key];
               if (count === undefined) return null;
@@ -171,7 +171,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
 
       <h3 className="detail-section-title">{t("fcp-detail-features")}</h3>
       {features.length > 0 ? (
-        <ul className="fcp-detail-features">
+        <ul className="detail-features">
           {features.map((feature) => (
             <li key={feature}>{feature}</li>
           ))}

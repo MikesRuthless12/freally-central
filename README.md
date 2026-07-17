@@ -5,18 +5,17 @@ products in one grid — big icons, per-OS downloads, live install/update status
 "What's New", real download counts, and a **Download All** button — with a live 0–100 %
 download/install progress bar and hands-off (silent) installation.
 
-> Status: **Phase 5 complete** — on top of the Phase 0–4 pipeline, shell, catalog grid, live
-> release data, install detection, and the verified download engine, Central now **installs
-> hands-off**: one click on **Download & install all** (or a card's Install/Update) carries an
-> app through download, verification, and a **silent install** with the installer's own
-> defaults — NSIS `/S` (per-user, no UAC), MSI `/qn`, macOS dmg mount + copy into Applications,
-> Linux AppImage placement or deb/rpm behind a **single pkexec consent per batch**. Execution is
-> gated by a trust anchor independent of the catalog: a **matching published SHA-256 is
-> required**, the release owner must be in a **compile-time allowlist**, and the file is
-> **re-hashed at install time** — a tampered or unverified file is refused, honestly. The badge
-> flips to **Installed ✓** and the detail view offers **Open**. Next up is Phase 6 (the
-> embeddable "Central inside" panel). See `Freally-Central-Feature-Roadmap.md` for the plan and
-> `Build-Prompts-Guide.md` for the phase-by-phase build prompts.
+> Status: **Phase 6 complete** — the whole hub is now an **embeddable "Central inside"
+> panel**: the grid, detail view, live release data, install detection, and the verified
+> download → **silent-install** flow (trust-gated: required published SHA-256, compile-time
+> owner allowlist, install-time re-hash) live in a reusable panel (`ui/src/panel`) + engine
+> crate (`crates/freally-central-engine`) that any Freally app vendors as a git submodule —
+> **Freally Capture ships it first** under Help → **More Freally apps**, themed by Capture's
+> tokens and localized through Capture's own 18-locale catalogs. Central itself runs on the
+> exact same panel and engine, so there is one implementation, everywhere. See `EMBEDDING.md`
+> for the drop-in guide, `Freally-Central-Feature-Roadmap.md` for the plan, and
+> `Build-Prompts-Guide.md` for the phase-by-phase build prompts. Next up is Phase 7
+> (distribution polish, the self-updater endpoint, a11y & the public site).
 
 ## What it is
 
