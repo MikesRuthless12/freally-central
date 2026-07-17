@@ -1109,19 +1109,28 @@ dependencies = [
 
 [[package]]
 name = "freally-central"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
- "futures-util",
- "hex",
- "reqwest",
+ "freally-central-engine",
  "serde",
  "serde_json",
- "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
  "tauri-plugin-process",
  "tauri-plugin-updater",
+]
+
+[[package]]
+name = "freally-central-engine"
+version = "0.6.0"
+dependencies = [
+ "futures-util",
+ "hex",
+ "reqwest",
+ "serde",
+ "sha2",
+ "tauri",
  "tokio",
  "winreg 0.56.0",
 ]

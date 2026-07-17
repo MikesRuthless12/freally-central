@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { launchApp, openExternal, revealInFolder } from "../api/commands";
 import { useI18n } from "../i18n";
+import { openExternalUrl, useHost } from "../host";
+import { launchApp } from "../downloads/engine";
 import { appDescription, appFeatures, appTagline } from "../catalog/localize";
 import type { CatalogApp } from "../catalog/types";
 import { formatCount, formatDate } from "../releases/format";
@@ -39,13 +40,14 @@ const OS_ROWS: { key: OsKey; label: string }[] = [
 
 // The download button's label per action (FC-22).
 const ACTION_KEY: Record<DownloadAction, string> = {
-  install: "action-install",
-  update: "action-update",
-  redownload: "action-redownload",
+  install: "fcp-action-install",
+  update: "fcp-action-update",
+  redownload: "fcp-action-redownload",
 };
 
 export function DetailView({ app, release, installedVersion, downloads, onBack }: DetailViewProps) {
   const { t, locale } = useI18n();
+  const host = useHost();
   const [changelogOpen, setChangelogOpen] = useState(false);
   const [openFailed, setOpenFailed] = useState(false);
   const soon = app.status === "coming-soon";
@@ -75,7 +77,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   // hide it. Its label reflects detected status when known, else a plain Download.
   const showDownload = !soon && (downloadUrl !== undefined || engineReady);
   const action: DownloadAction = status ? downloadAction(status) : "install";
-  const downloadLabelKey = status ? ACTION_KEY[action] : "card-download";
+  const downloadLabelKey = status ? ACTION_KEY[action] : "fcp-card-download";
   // Open (FC-42): the app is on this machine — detected, or installed just now.
   const showOpen = downloads.supported && status !== null && status !== "not-installed";
   const startPrimary = () => {
@@ -86,7 +88,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
       if (!status || action === "redownload") downloads.start(app.id, asset);
       else downloads.installFlow(app.id, asset);
     } else if (downloadUrl) {
-      void openExternal(downloadUrl);
+      openExternalUrl(host, downloadUrl);
     }
   };
   const openApp = () => {
@@ -97,17 +99,17 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   const note = (() => {
     switch (download?.phase) {
       case "done":
-        return { tone: "ok", key: download.checksumVerified ? "dl-done-verified" : "dl-done-size-only" };
+        return { tone: "ok", key: download.checksumVerified ? "fcp-dl-done-verified" : "fcp-dl-done-size-only" };
       case "installed":
-        return { tone: "ok", key: "install-done" };
+        return { tone: "ok", key: "fcp-install-done" };
       case "installFailed":
         return { tone: "error", key: installFailureMessageKey(download.code) };
       case "installCanceled":
-        return { tone: "", key: "install-canceled" };
+        return { tone: "", key: "fcp-install-canceled" };
       case "failed":
         return { tone: "error", key: failureMessageKey(download.code) };
       case "canceled":
-        return { tone: "", key: "dl-canceled" };
+        return { tone: "", key: "fcp-dl-canceled" };
       default:
         return null;
     }
@@ -115,7 +117,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   return (
     <section className="detail">
       <button type="button" className="btn btn-ghost detail-back" onClick={onBack}>
-        ← {t("detail-back")}
+        ← {t("fcp-detail-back")}
       </button>
 
       <div className="detail-head">
@@ -125,15 +127,15 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
           {tagline && <p className="detail-tagline">{tagline}</p>}
           <div className="detail-badges">
             <span className={soon ? "pill pill--soon" : "pill pill--view"}>
-              {soon ? t("coming-soon") : t("available")}
+              {soon ? t("fcp-coming-soon") : t("fcp-available")}
             </span>
             {status && <StatusBadge status={status} />}
             {live && <span className="detail-version">v{live.version}</span>}
             {app.startedDate && (
-              <span className="detail-started">{t("detail-started", { date: app.startedDate })}</span>
+              <span className="detail-started">{t("fcp-detail-started", { date: app.startedDate })}</span>
             )}
             {releasedDate && (
-              <span className="detail-started">{t("detail-released", { date: releasedDate })}</span>
+              <span className="detail-started">{t("fcp-detail-released", { date: releasedDate })}</span>
             )}
           </div>
         </div>
@@ -143,7 +145,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
 
       {live && (
         <>
-          <h3 className="detail-section-title">{t("detail-downloads")}</h3>
+          <h3 className="detail-section-title">{t("fcp-detail-downloads")}</h3>
           <dl className="detail-downloads">
             {OS_ROWS.map(({ key, label }) => {
               const count = live.perOs[key];
@@ -156,7 +158,7 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
               );
             })}
             <div className="detail-download-row detail-download-total">
-              <dt>{t("downloads-total")}</dt>
+              <dt>{t("fcp-downloads-total")}</dt>
               <dd>{formatCount(locale, live.totalDownloads)}</dd>
             </div>
           </dl>
@@ -164,10 +166,10 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
       )}
 
       {release?.status === "unavailable" && (
-        <p className="detail-muted detail-downloads-note">{t("downloads-unavailable")}</p>
+        <p className="detail-muted detail-downloads-note">{t("fcp-downloads-unavailable")}</p>
       )}
 
-      <h3 className="detail-section-title">{t("detail-features")}</h3>
+      <h3 className="detail-section-title">{t("fcp-detail-features")}</h3>
       {features.length > 0 ? (
         <ul className="detail-features">
           {features.map((feature) => (
@@ -175,30 +177,30 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
           ))}
         </ul>
       ) : (
-        <p className="detail-muted">{t("detail-no-features")}</p>
+        <p className="detail-muted">{t("fcp-detail-no-features")}</p>
       )}
 
-      {soon && <p className="detail-note">{t("detail-coming-soon-note")}</p>}
+      {soon && <p className="detail-note">{t("fcp-detail-coming-soon-note")}</p>}
 
       {(live || app.site || showDownload || showOpen) && (
         <div className="detail-actions">
           {showOpen && (
             <button type="button" className="btn btn-primary" onClick={openApp}>
-              {t("open-app")}
+              {t("fcp-open-app")}
             </button>
           )}
           {live && (
             <button type="button" className="btn" onClick={() => setChangelogOpen(true)}>
-              {t("detail-whats-new")}
+              {t("fcp-detail-whats-new")}
             </button>
           )}
           {app.site && (
             <button
               type="button"
               className={showDownload || showOpen ? "btn" : "btn btn-primary"}
-              onClick={() => void openExternal(app.site as string)}
+              onClick={() => openExternalUrl(host, app.site as string)}
             >
-              {t("detail-visit-site")}
+              {t("fcp-detail-visit-site")}
             </button>
           )}
           {showDownload && !downloading && !installing && (
@@ -209,20 +211,20 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
             >
               {t(
                 download?.phase === "failed" || download?.phase === "canceled"
-                  ? "dl-retry"
+                  ? "fcp-dl-retry"
                   : downloadLabelKey,
               )}
             </button>
           )}
           {cancelable && (
             <button type="button" className="btn" onClick={() => downloads.cancel(app.id)}>
-              {t("dl-cancel")}
+              {t("fcp-dl-cancel")}
             </button>
           )}
         </div>
       )}
 
-      {openFailed && <p className="detail-download-note detail-download-note--error">{t("open-failed", { name: app.name })}</p>}
+      {openFailed && <p className="detail-download-note detail-download-note--error">{t("fcp-open-failed", { name: app.name })}</p>}
 
       {/* The live download/install panel (FC-31 + FC-41): a real-bytes bar with
           the two-decimal percent while streaming/verifying, the staged install
@@ -232,21 +234,21 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
           {downloading && (
             <>
               <span className="detail-download-phase">
-                {t(download.phase === "verifying" ? "dl-verifying" : "dl-downloading")}
+                {t(download.phase === "verifying" ? "fcp-dl-verifying" : "fcp-dl-downloading")}
               </span>
               <ProgressBar
                 fraction={stateFraction(download)}
-                label={t("dl-progress-label", { name: app.name })}
+                label={t("fcp-dl-progress-label", { name: app.name })}
                 percentClassName="detail-download-percent"
               />
             </>
           )}
           {installing && (
             <>
-              <span className="detail-download-phase">{t("dl-installing")}</span>
+              <span className="detail-download-phase">{t("fcp-dl-installing")}</span>
               <ProgressBar
                 fraction={stateFraction(download)}
-                label={t("install-progress-label", { name: app.name })}
+                label={t("fcp-install-progress-label", { name: app.name })}
                 percentClassName="detail-download-percent"
               />
             </>
@@ -261,17 +263,20 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
             </p>
           )}
           {/* The verified installer is still on disk after a failed or canceled
-              install — keep it reachable so the user can always run it by hand. */}
+              install — keep it reachable so the user can always run it by hand.
+              Hidden when the host has no reveal capability. */}
           {isInstallReady(download) && download.path && (
             <>
               <span className="detail-download-file">{download.path.split(/[\\/]/).pop()}</span>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => void revealInFolder(download.path)}
-              >
-                {t("dl-show-in-folder")}
-              </button>
+              {host.revealInFolder && (
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => void host.revealInFolder?.(download.path)}
+                >
+                  {t("fcp-dl-show-in-folder")}
+                </button>
+              )}
             </>
           )}
         </div>

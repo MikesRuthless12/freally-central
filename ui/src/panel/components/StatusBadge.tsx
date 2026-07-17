@@ -5,9 +5,9 @@ import type { InstallStatus } from "../install/types";
 // Shared by the grid card and the detail view so both read identically.
 
 const LABEL_KEY: Record<InstallStatus, string> = {
-  installed: "status-installed",
-  "update-available": "status-update",
-  "not-installed": "status-not-installed",
+  installed: "fcp-status-installed",
+  "update-available": "fcp-status-update",
+  "not-installed": "fcp-status-not-installed",
 };
 
 const MODIFIER: Record<InstallStatus, string> = {

@@ -58,7 +58,17 @@ export function normalizeCatalog(raw: unknown): Catalog {
 
 export const bundledCatalog: Catalog = normalizeCatalog(fallbackData);
 
+// A host may mount the panel in a closable dialog, re-running useCatalog on
+// every open — serve a recent hosted fetch from memory instead of re-hitting
+// the network each time (same TTL idiom as releases/github.ts). Only hosted
+// successes memoize: an offline fallback must not suppress the next retry.
+const CATALOG_TTL_MS = 15 * 60 * 1000;
+let lastHosted: { at: number; catalog: Catalog } | null = null;
+
 export async function loadCatalog(): Promise<{ catalog: Catalog; source: CatalogSource }> {
+  if (lastHosted && Date.now() - lastHosted.at < CATALOG_TTL_MS) {
+    return { catalog: lastHosted.catalog, source: "hosted" };
+  }
   try {
     const res = await fetch(MANIFEST_URL, { headers: { Accept: "application/json" } });
     if (res.ok) {
@@ -70,6 +80,7 @@ export async function loadCatalog(): Promise<{ catalog: Catalog; source: Catalog
         } catch {
           /* storage full/unavailable — non-fatal */
         }
+        lastHosted = { at: Date.now(), catalog };
         return { catalog, source: "hosted" };
       }
     }

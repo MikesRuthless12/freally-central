@@ -6,14 +6,14 @@
 import type { DownloadFailCode, InstallFailCode } from "./types";
 
 const FAILURE_KEY: Record<DownloadFailCode, string> = {
-  network: "dl-failed-network",
-  shortDownload: "dl-failed-network",
-  sizeMismatch: "dl-failed-verify",
-  checksumMismatch: "dl-failed-verify",
-  alreadyDownloading: "dl-failed-busy",
-  badRequest: "dl-failed",
-  io: "dl-failed",
-  unknown: "dl-failed",
+  network: "fcp-dl-failed-network",
+  shortDownload: "fcp-dl-failed-network",
+  sizeMismatch: "fcp-dl-failed-verify",
+  checksumMismatch: "fcp-dl-failed-verify",
+  alreadyDownloading: "fcp-dl-failed-busy",
+  badRequest: "fcp-dl-failed",
+  io: "fcp-dl-failed",
+  unknown: "fcp-dl-failed",
 };
 
 export function failureMessageKey(code: DownloadFailCode): string {
@@ -24,16 +24,16 @@ export function failureMessageKey(code: DownloadFailCode): string {
 // messages — "the file was refused" is a different fact from "the installer
 // errored", and the DoD forbids blurring either into success.
 const INSTALL_FAILURE_KEY: Record<InstallFailCode, string> = {
-  notDownloaded: "install-failed-not-downloaded",
-  noChecksum: "install-failed-not-verified",
-  untrustedSource: "install-failed-not-verified",
-  tampered: "install-failed-verify",
-  unsupportedInstaller: "install-failed-unsupported",
-  installerFailed: "install-failed-installer",
-  elevationDeclined: "install-failed-elevation",
-  busy: "install-failed-busy",
-  io: "install-failed",
-  unknown: "install-failed",
+  notDownloaded: "fcp-install-failed-not-downloaded",
+  noChecksum: "fcp-install-failed-not-verified",
+  untrustedSource: "fcp-install-failed-not-verified",
+  tampered: "fcp-install-failed-verify",
+  unsupportedInstaller: "fcp-install-failed-unsupported",
+  installerFailed: "fcp-install-failed-installer",
+  elevationDeclined: "fcp-install-failed-elevation",
+  busy: "fcp-install-failed-busy",
+  io: "fcp-install-failed",
+  unknown: "fcp-install-failed",
 };
 
 export function installFailureMessageKey(code: InstallFailCode): string {

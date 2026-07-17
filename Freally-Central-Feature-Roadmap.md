@@ -219,8 +219,12 @@ passes.** Run it in this order (reviews and all fixes come **before** any push):
   from the counter/rollout until its own roadmap exists.
 
 **Definition of Done — Phase 6**
-- [ ] The panel embeds in at least one shipping Freally app with no duplicated business logic.
-- [ ] Panel chrome is fully localized via the host app's 18-locale catalogs.
+- [x] The panel embeds in at least one shipping Freally app with no duplicated business logic.
+      *(Freally Capture: Help → More Freally apps — the vendored `ui/src/panel` + the
+      `freally-central-engine` crate from one pinned submodule commit; see EMBEDDING.md.)*
+- [x] Panel chrome is fully localized via the host app's 18-locale catalogs.
+      *(The panel's `fcp-*` catalogs load into the host's Fluent bundles; proven by
+      Capture's `MoreApps.test.tsx` asserting a panel string through Capture's `t()`.)*
 
 ### Phase 7 — Polish, distribution & auto-update
 *Ship Central itself the way the brand ships everything.*

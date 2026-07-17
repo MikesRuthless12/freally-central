@@ -3,6 +3,14 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## 0.6.0 — Phase 6: "Central inside" — the embeddable panel
+
+- The whole hub — the card grid, detail view, live release data, install detection, and the verified download → silent-install flow — is now an **embeddable panel** any Freally app can ship under a "More Freally apps" entry, with **no copy of the business logic**: hosts vendor this repo as a git submodule; one pinned commit supplies both the React panel (`ui/src/panel`) and the Rust engine (the new `freally-central-engine` crate). Central itself now runs on exactly that panel and engine.
+- **Freally Capture is the first embed** (Help → More Freally apps): the panel renders in Capture's shell, themed by Capture's tokens (`--fcp-*` variable mapping, light/dark follows the host), localized through **Capture's own 18-locale Fluent runtime** — the panel's `fcp-*` catalogs load into the host's bundles and can never collide with host keys.
+- Engine commands are now `central_`-prefixed (`central_install_apps`, `central_launch_app`, …) so they can never collide with a host app's commands; the trust gate (verified-download registry, required checksum, baked owner allowlist, install-time re-hash) is unchanged and rides into every host.
+- New **EMBEDDING.md**: the drop-in checklist for Capture, Snipper, Sourcerer, File Manager and future apps (Freally Studio stays excluded until its own roadmap exists).
+- Housekeeping: the modal close button now has a proper localized "Close" label; two long-dead i18n keys removed.
+
 ## 0.5.0 — Phase 5: hands-off silent install
 
 - **Silent install** (FC-40): one click carries an app — or every app, via **Download & install all** — through download, verification, and an unattended install with the installer's own defaults. Windows runs the NSIS setup with `/S` (per-user, no UAC prompt; `msiexec /qn` as the MSI fallback), macOS mounts the `.dmg` and copies the app into Applications, Linux places the AppImage in `~/Applications` (deb/rpm install through a **single `pkexec` consent for the whole batch**). At most one elevation consent per batch, zero wizard clicks.

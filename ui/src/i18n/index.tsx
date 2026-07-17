@@ -11,18 +11,31 @@ import {
 import { FluentBundle, FluentResource, type FluentVariable } from "@fluent/bundle";
 import { LOCALE_NAMES } from "./localeNames";
 
-// Eagerly load every locale catalog as raw text (Vite import.meta.glob).
+// Eagerly load every locale catalog as raw text (Vite import.meta.glob):
+// Central's own strings plus the embeddable panel's fcp-* catalogs — the same
+// two-resource setup every host app embedding the panel uses.
 const ftlModules = import.meta.glob("./locales/*.ftl", {
   query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
+const panelFtlModules = import.meta.glob("../panel/locales/*.ftl", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
 
-const resources: Record<string, string> = {};
-for (const [path, content] of Object.entries(ftlModules)) {
-  const match = /\/([A-Za-z-]+)\.ftl$/.exec(path);
-  if (match) resources[match[1]] = content;
+function byLocale(modules: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [path, content] of Object.entries(modules)) {
+    const match = /\/([A-Za-z-]+)\.ftl$/.exec(path);
+    if (match) out[match[1]] = content;
+  }
+  return out;
 }
+
+const resources = byLocale(ftlModules);
+const panelResources = byLocale(panelFtlModules);
 
 // Language-picker order: English first, then the rest alphabetically by their
 // NATIVE name. A fixed "en" collator (not the active locale) keeps the order
@@ -47,6 +60,7 @@ function getBundle(locale: string): FluentBundle {
     // useIsolating adds Unicode bidi marks around placeables; off for cleaner UI strings.
     bundle = new FluentBundle(locale, { useIsolating: false });
     bundle.addResource(new FluentResource(resources[locale] ?? ""));
+    bundle.addResource(new FluentResource(panelResources[locale] ?? ""));
     bundleCache.set(locale, bundle);
   }
   return bundle;

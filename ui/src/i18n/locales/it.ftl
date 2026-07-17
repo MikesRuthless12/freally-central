@@ -1,28 +1,10 @@
 # Freally Central — UI strings (it)
-# Keys must stay in sync across all locales (npm run i18n:lint).
 
+# Keys must stay in sync across all locales (npm run i18n:lint).
 app-name = Freally Central
 app-tagline = Un hub per ogni app Freally.
-filter-type = Tipo
-filter-all = Tutte
-available = Disponibili
-coming-soon = In arrivo
-install-all = Scarica e installa tutto
-install-all-hint = Scarica e installa silenziosamente tutte le app disponibili per questo computer.
-install-all-unsupported = L’installazione richiede l’app desktop Freally Central.
-install-all-none = Nessuna app scaricabile al momento.
 language = Lingua
 theme-toggle = Cambia tema
-card-view = Apri
-detail-back = Indietro
-detail-features = Funzionalità
-detail-started = Iniziato il { $date }
-detail-visit-site = Visita il sito
-detail-no-features = Dettagli sulle funzionalità in arrivo.
-detail-coming-soon-note = Questa app non è ancora disponibile per il download.
-status-loading = Caricamento catalogo…
-status-offline = Offline — catalogo incluso mostrato.
-grid-empty = Nessuna app corrisponde a questo filtro.
 eula-title = Contratto di licenza con l’utente finale
 eula-intro = Leggi e accetta la licenza per continuare.
 eula-accept = Accetta e continua
@@ -69,89 +51,5 @@ updates-restart-now = Riavvia ora
 updates-restart-later = Più tardi
 updates-try-again = Riprova
 
-# --- Live release data (Phase 2) ---
-downloads-count = { $count } download
-downloads-total = Totale
-downloads-brandwide = App Freally scaricate { $count } volte
-downloads-unavailable = I conteggi dei download non sono disponibili al momento.
-detail-released = Pubblicato il { $date }
-detail-downloads = Download
-detail-whats-new = Novità
-refresh = Aggiorna
-changelog-heading = Novità di { $name }
-changelog-version = Versione { $version } · { $date }
-changelog-empty = Ancora nessuna nota di rilascio.
-changelog-view-full = Vedi il changelog completo
-changelog-view-release = Vedi su GitHub
-
-# --- Per-app taglines (localized catalog copy) ---
-card-download = Scarica
-tagline-freally-capture = Registra e trasmetti come uno studio — un'unica app.
-tagline-freally-vault = Le tue password, passkey e segreti — cifrati, local-first, tuoi.
-tagline-freally-player = Riproduce tutto. Splendidamente. Senza pubblicità né spyware.
-tagline-freally-av = Freally Anti-Virus — in arrivo.
-tagline-freally-studio = Uno studio musicale assistito dall'IA — in arrivo.
-tagline-freally-sourcerer = Una prossima app Freally.
-tagline-freally-file-manager = Un file manager multipiattaforma — in arrivo.
-
-# --- Per-app descriptions & features (localized catalog copy) ---
-desc-freally-capture = Uno studio di live streaming e registrazione local-first e multipiattaforma (livello OBS): un compositore di scene GPU in tempo reale, registrazione multitraccia e multistreaming su tutte le piattaforme contemporaneamente — interamente sul tuo computer. Senza account, senza telemetria, senza cloud.
-desc-freally-vault = Un gestore di password, passkey e segreti local-first, zero-knowledge e cifrato end-to-end. Compatibile con KeePass, core Rust sicuro in memoria, completamente gratuito — la tua cassaforte non lascia mai il tuo computer.
-desc-freally-player = Un lettore multimediale local-first e multipiattaforma che riproduce praticamente tutto con accelerazione hardware — un'interfaccia moderna, una vera libreria multimediale e lo streaming, senza pubblicità né telemetria.
-desc-freally-av = L'antivirus local-first di Freally per Windows, macOS e Linux. In arrivo — non ancora disponibile per il download.
-desc-freally-studio = Una DAW completa con generazione di pattern tramite IA su oltre 35 generi, un mixer in stile FL, timeline di arrangiamento ed editor di clip audio. Anteprima — non ancora disponibile per il download.
-desc-freally-sourcerer = Questa app Freally è in arrivo. Non ancora disponibile per il download.
-desc-freally-file-manager = Questa app Freally è in arrivo. Non ancora disponibile per il download.
-feat-freally-capture-1 = Compositore di scene GPU proprietario (wgpu) con filtri e transizioni per sorgente
-feat-freally-capture-2 = Registrazione multitraccia (encoder hardware + il codec lossless proprietario)
-feat-freally-capture-3 = Multistreaming su Twitch/YouTube/Kick contemporaneamente (RTMP/SRT/WHIP)
-feat-freally-capture-4 = Webcam virtuale, replay buffer, downstream keyer e trasformazioni 3D
-feat-freally-capture-5 = Interfaccia in 18 lingue
-
-# --- Install status & actions (Phase 3) ---
-status-installed = Installato
-status-update = Aggiornamento disponibile
-status-not-installed = Non installato
-action-install = Installa
-action-update = Aggiorna
-action-redownload = Scarica di nuovo
-
-# --- Downloads & live progress (Phase 4) ---
-dl-downloading = Download in corso…
-dl-verifying = Verifica in corso…
-dl-done-verified = Scaricato e verificato
-dl-done-size-only = Scaricato (dimensione controllata)
-dl-failed = Download non riuscito.
-dl-failed-network = Download non riuscito — errore di rete.
-dl-failed-verify = Verifica non riuscita — il file è stato scartato.
-dl-failed-busy = Un download per questa app è già in corso.
-dl-canceled = Download annullato.
-dl-cancel = Annulla
-dl-retry = Riprova
-dl-progress-label = Avanzamento del download di { $name }
-dl-show-in-folder = Mostra nella cartella
-batch-progress = { $done } di { $total } scaricate
-batch-cancel-all = Annulla tutto
-batch-done = Tutti i download sono completati.
-batch-failed = { $failed } download su { $total } non riusciti.
-batch-canceled = { $canceled } download su { $total } annullati.
-
-# --- Silent install (Phase 5) ---
-dl-installing = Installazione in corso…
-install-progress-label = Avanzamento dell’installazione di { $name }
-install-done = Installato ✓
-install-canceled = Installazione annullata.
-install-failed = Installazione non riuscita.
-install-failed-not-downloaded = Scarica l’app prima di installarla.
-install-failed-not-verified = Questo programma di installazione non è verificato per l’installazione silenziosa — non è stato eseguito.
-install-failed-verify = Verifica non riuscita — il programma di installazione è stato rifiutato.
-install-failed-unsupported = Questo tipo di programma di installazione non può essere installato silenziosamente su questo computer.
-install-failed-installer = Il programma di installazione ha segnalato un errore.
-install-failed-elevation = L’autorizzazione di amministratore è stata negata.
-install-failed-busy = Un’installazione è già in corso.
-open-app = Apri
-open-failed = Impossibile aprire { $name }.
-batch-installing = Installazione in corso… { $done } su { $total } installate
-batch-installed = Tutte le app installate.
-batch-install-failed = { $failed } installazioni su { $total } non riuscite.
-batch-install-canceled = { $canceled } installazioni su { $total } annullate.
+# --- Shared modal chrome ---
+modal-close = Chiudi

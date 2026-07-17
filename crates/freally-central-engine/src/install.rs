@@ -115,7 +115,7 @@ type Fail = (&'static str, String);
 /// The returned future resolves when the whole batch is terminal; outcomes are
 /// always delivered as events (the UI drives its state from the channel alone).
 #[tauri::command]
-pub async fn install_apps(
+pub async fn central_install_apps(
     requests: Vec<InstallRequest>,
     on_event: Channel<InstallEvent>,
     installs: State<'_, Installs>,
@@ -159,7 +159,7 @@ pub async fn install_apps(
 /// end as `canceled`; a currently running installer finishes and reports its
 /// real outcome (killing an installer mid-run can corrupt an install).
 #[tauri::command]
-pub fn cancel_installs(installs: State<'_, Installs>) {
+pub fn central_cancel_installs(installs: State<'_, Installs>) {
     if let Ok(slot) = installs.0.lock() {
         if let Some(flag) = slot.as_ref() {
             flag.store(true, Ordering::Relaxed);
@@ -859,7 +859,7 @@ async fn run_installer(_plan: &Plan, _on_event: &Channel<InstallEvent>) -> Resul
 /// launches something an installer actually put on this machine — the manifest
 /// alone can never turn this into "run an arbitrary command".
 #[tauri::command]
-pub async fn launch_app(id: String, name: String) -> Result<(), String> {
+pub async fn central_launch_app(id: String, name: String) -> Result<(), String> {
     let id = safe_token(&id, false)?;
     let name = safe_token(&name, true)?;
     tauri::async_runtime::spawn_blocking(move || launch(&id, &name))

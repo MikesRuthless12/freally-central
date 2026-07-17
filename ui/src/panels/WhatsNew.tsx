@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { releaseNotes } from "../api/commands";
 import type { ReleaseNotes } from "../api/types";
-import { Modal } from "../components/Modal";
+import { Modal } from "../panel";
 import { useT } from "../i18n";
 
 // Settings → What's New: the running build's changelog section, shown in-app.
@@ -26,7 +26,7 @@ export function WhatsNewDialog({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <Modal title={t("whats-new-title")} onClose={onClose} wide>
+    <Modal title={t("whats-new-title")} closeLabel={t("modal-close")} onClose={onClose} wide>
       <div className="whatsnew">
         {notes === null ? (
           <p className="muted">{t("whats-new-loading")}</p>

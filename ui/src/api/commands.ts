@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
+import { isSafeHttpUrl } from "../panel";
 import type { BuildInfo, ReleaseNotes } from "./types";
 
 // Build metadata for the About panel (from src-tauri/src/commands.rs).
@@ -10,16 +11,6 @@ export function buildInfo(): Promise<BuildInfo> {
 // The running build's changelog section for What's New (embedded from CHANGELOG.md).
 export function releaseNotes(): Promise<ReleaseNotes> {
   return invoke<ReleaseNotes>("release_notes");
-}
-
-/**
- * Launch an installed catalog app (FC-42 "Open"). The backend only launches
- * what an installer actually recorded on this machine (uninstall registry /
- * `open -a` / package binary or AppImage) — rejects when the app isn't found,
- * so callers must surface that honestly.
- */
-export function launchApp(id: string, name: string): Promise<void> {
-  return invoke("launch_app", { id, name });
 }
 
 /**
@@ -45,13 +36,7 @@ export async function revealInFolder(path: string): Promise<void> {
 }
 
 export async function openExternal(url: string): Promise<void> {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return; // not an absolute URL — nothing safe to open
-  }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
+  if (!isSafeHttpUrl(url)) return;
   try {
     await openUrl(url);
   } catch {

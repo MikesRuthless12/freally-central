@@ -439,6 +439,30 @@ export function useDownloads(): DownloadsApi {
     engine?.cancelInstalls();
   }, [engine]);
 
+  // A host may unmount the panel (it can live in a closable dialog), removing
+  // the only listener on the engine's event channels — this hook owns those
+  // channels, so it owns the teardown too: cancel everything still cancelable
+  // so nothing runs unobserved. Downloads resume on the next Retry; a running
+  // installer (never killed mid-run, by design) finishes in the backend and
+  // the next mount's detection re-probe reports its real outcome.
+  useEffect(
+    () => () => {
+      batchCanceledRef.current = true;
+      for (const appId of runningRef.current.keys()) {
+        engine?.cancel(appId);
+      }
+      engine?.cancelInstalls();
+      // The one cancelable state outside the running registry: an orphaned
+      // backend download (alreadyDownloading after a reload).
+      for (const [appId, state] of byIdRef.current) {
+        if (state.phase === "failed" && state.code === "alreadyDownloading") {
+          engine?.cancel(appId);
+        }
+      }
+    },
+    [engine],
+  );
+
   const installerFor = useCallback(
     (app: CatalogApp, release: ReleaseState | undefined): InstallerAsset | null => {
       if (!platform || app.status !== "available") return null;
