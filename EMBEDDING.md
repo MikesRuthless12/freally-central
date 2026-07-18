@@ -135,6 +135,31 @@ the rollout (and from the brand-wide counter) until its own roadmap exists.
    proves the submodule catalogs are really wired in (see Capture's
    `ui/src/panels/MoreApps.test.tsx`).
 
+## View-only (no-download) hosts
+
+An app that only wants to *showcase* the family — not ship the download/install
+machinery — renders the panel with `allowDownloads={false}`:
+
+```tsx
+<CentralPanel t={t} locale={locale} host={HOST} allowDownloads={false} />
+```
+
+Every Download / Install / Update / Open / Download-All control disappears; the
+cards, detail view, live release data, **real download counts**, and the
+**changelog viewer** all stay, and an available app's card reads "Available"
+instead of "Download". No new strings — the mode reuses the panel's existing
+`fcp-*` catalogs, so 18-locale parity is unchanged.
+
+Because nothing can start a download or install, a view-only host can **skip the
+Rust engine entirely** (step 2). The panel probes the backend on mount and
+degrades gracefully when the `central_*` commands aren't registered, so downloads
+become impossible at the backend, not merely hidden; the only thing lost is the
+"Installed ✓" detection badge (it needs the engine). That reduces a view-only
+embed to a **pure-frontend** drop-in — submodule + panel alias + i18n + dialog +
+CSP + icons + theme — with **no `Cargo.toml` / `main.rs` changes**. Steps 2 (Rust
+engine) and the engine parts of the CSP are then unnecessary; everything else is
+identical.
+
 ## Updating a host
 
 ```sh
@@ -149,14 +174,15 @@ those SHAs go away when the branch is deleted.
 
 | App | Status |
 |---|---|
-| Freally Capture | ✅ embedded (reference implementation) |
-| Freally Snipper | ☐ pending |
-| Freally Sourcerer | ☐ pending |
-| Freally File Manager | ☐ pending |
-| Freally AV | ☐ pending |
-| Freally Vault | ☐ pending |
-| Freally Player | ☐ pending |
-| Freally Studio | — excluded until its own roadmap exists |
+| Freally Capture | ✅ embedded — full (download-capable) reference implementation |
+| Freally Sourcerer | ☐ pending — view-only |
+| Freally File Manager | ☐ pending — view-only |
+| Freally AV | ☐ pending — view-only |
+| Freally Studio | ☐ pending — view-only (previously deferred; owner opted it in) |
+| Freally Vault | — no host UI yet (Rust-only skeleton); appears as a catalog card |
+| Freally Player | — no host UI yet (Rust-only skeleton); appears as a catalog card |
 
-Non-React hosts (Rust-only apps) can still reuse the engine crate; the panel
-UI needs a webview with React 19.
+Non-React hosts (Rust-only apps like Vault and Player today) have no webview to
+embed the React panel into — they are still represented *inside* every embedded
+panel as catalog cards (icon + status + info). Once such an app grows a React 19
+webview it can take the panel; until then only the engine crate is reusable.

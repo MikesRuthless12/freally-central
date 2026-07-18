@@ -3,6 +3,11 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## Unreleased
+
+- **View-only embedding mode**: the "Central inside" panel now accepts an `allowDownloads={false}` prop that turns it into a pure showcase — the card grid, detail view, live release data, **real download counts**, and the **changelog viewer** all remain, while every Download / Install / Update / Open / Download-All control is hidden and an available app's card reads "Available" instead of "Download". Hosts that only surface the catalog (apps still in "coming soon") can embed the panel with no download machinery at all — the Rust engine crate becomes optional, so downloads are impossible at the backend rather than merely hidden. No new user-facing strings; 18-locale parity stays green.
+- **Housekeeping**: refreshed the Freally Vault card icon; removed the retired Freally Snipper from the embedding docs and roadmap.
+
 ## 0.7.0 — Phase 7: polish, distribution & auto-update
 
 - **In-app auto-update now resolves on every OS** (FC-60): the release pipeline publishes one consolidated, signed `latest.json` covering Windows, macOS (Intel + Apple Silicon) and Linux — built by merging each platform's updater fragment in a dedicated release job, instead of four matrix jobs each overwriting a single-OS manifest. **Settings → Check for updates** now resolves, and every update is still verified against the minisign public key baked into the app before it is applied. macOS builds are now ad-hoc signed, so first launch is a right-click → **Open** rather than a hard Gatekeeper block.
@@ -17,7 +22,7 @@ embedded into the app and shown in **Settings → What's New**.
 - The whole hub — the card grid, detail view, live release data, install detection, and the verified download → silent-install flow — is now an **embeddable panel** any Freally app can ship under a "More Freally apps" entry, with **no copy of the business logic**: hosts vendor this repo as a git submodule; one pinned commit supplies both the React panel (`ui/src/panel`) and the Rust engine (the new `freally-central-engine` crate). Central itself now runs on exactly that panel and engine.
 - **Freally Capture is the first embed** (Help → More Freally apps): the panel renders in Capture's shell, themed by Capture's tokens (`--fcp-*` variable mapping, light/dark follows the host), localized through **Capture's own 18-locale Fluent runtime** — the panel's `fcp-*` catalogs load into the host's bundles and can never collide with host keys.
 - Engine commands are now `central_`-prefixed (`central_install_apps`, `central_launch_app`, …) so they can never collide with a host app's commands; the trust gate (verified-download registry, required checksum, baked owner allowlist, install-time re-hash) is unchanged and rides into every host.
-- New **EMBEDDING.md**: the drop-in checklist for Capture, Snipper, Sourcerer, File Manager and future apps (Freally Studio stays excluded until its own roadmap exists).
+- New **EMBEDDING.md**: the drop-in checklist for Capture, Sourcerer, File Manager and future apps (Freally Studio stays excluded until its own roadmap exists).
 - Housekeeping: the modal close button now has a proper localized "Close" label; two long-dead i18n keys removed.
 
 ## 0.5.0 — Phase 5: hands-off silent install

@@ -121,7 +121,7 @@ two-decimal percent text), and asserts each card ends **Installed ✓** — plus
 ## P6.1 — "Central inside" embeddable panel (FC-50, FC-51)
 Extract the grid + detail + download/install flow into a reusable module any Freally app embeds
 (e.g. a "More Freally apps" entry), reading the same manifest and reusing the host app's i18n
-runtime. Provide drop-in instructions for Capture, Snipper, Sourcerer, File Manager, and future
+runtime. Provide drop-in instructions for Capture, Sourcerer, File Manager, and future
 apps. **Exclude Freally Studio** until its own roadmap exists.
 **Accept:** the panel embeds in at least one shipping app with no duplicated business logic; its
 chrome is localized via the host's catalogs.

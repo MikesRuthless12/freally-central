@@ -13,9 +13,11 @@ interface ToolbarProps {
   downloads: DownloadsApi;
   /** Every installer Download & install all would fetch on this machine. */
   entries: BatchEntry[];
+  /** When false (view-only host), the Download-All control and its progress are hidden. */
+  allowDownloads: boolean;
 }
 
-export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) {
+export function Toolbar({ filter, onFilter, downloads, entries, allowDownloads }: ToolbarProps) {
   const t = useT();
   const { batch } = downloads;
   const busy = batch.status === "running" || batch.status === "installing";
@@ -83,15 +85,17 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
       <LiveRegion message={settled} />
 
       <div className="toolbar-row">
-        <button
-          type="button"
-          className="download-all"
-          disabled={!canStart}
-          title={hint}
-          onClick={() => downloads.startAll(entries)}
-        >
-          {t("fcp-install-all")}
-        </button>
+        {allowDownloads && (
+          <button
+            type="button"
+            className="download-all"
+            disabled={!canStart}
+            title={hint}
+            onClick={() => downloads.startAll(entries)}
+          >
+            {t("fcp-install-all")}
+          </button>
+        )}
         <label className="type-filter">
           <span className="type-filter-label">{t("fcp-filter-type")}</span>
           <select
@@ -106,7 +110,7 @@ export function Toolbar({ filter, onFilter, downloads, entries }: ToolbarProps) 
         </label>
       </div>
 
-      {batch.status !== "idle" && (
+      {allowDownloads && batch.status !== "idle" && (
         <div className="batch">
           {liveBar && (
             <>

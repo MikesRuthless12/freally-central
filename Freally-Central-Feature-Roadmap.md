@@ -214,7 +214,7 @@ passes.** Run it in this order (reviews and all fixes come **before** any push):
 - **FC-50 — Shared panel package** — extract the grid + detail + download/install flow into a
   reusable module that any Freally app embeds (e.g. under a "More Freally apps" / Help entry),
   reading the same manifest and reusing that app's i18n runtime.
-- **FC-51 — Brand rollout** — a checklist + drop-in instructions so Freally Capture, Snipper,
+- **FC-51 — Brand rollout** — a checklist + drop-in instructions so Freally Capture,
   Sourcerer, File Manager, (and future apps) all surface Central; **Freally Studio is excluded**
   from the counter/rollout until its own roadmap exists.
 
