@@ -74,13 +74,16 @@ export function CentralPanel({ t, locale, host, allowDownloads = true }: Central
   // the whole downloads object — which changes identity on every progress event.
   const { installerFor } = downloads;
   const downloadAllEntries = useMemo<BatchEntry[]>(() => {
+    // A view-only host never renders Download-All, so skip the per-app installer
+    // scan entirely — the only reason installerFor would run in such an embed.
+    if (!allowDownloads) return [];
     const entries: BatchEntry[] = [];
     for (const app of apps) {
       const asset = installerFor(app, releases.byId.get(app.id));
       if (asset) entries.push({ appId: app.id, asset });
     }
     return entries;
-  }, [apps, releases.byId, installerFor]);
+  }, [apps, releases.byId, installerFor, allowDownloads]);
 
   return (
     <PanelI18nProvider t={t} locale={locale}>

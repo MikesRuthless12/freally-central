@@ -14,6 +14,15 @@ function renderPanel(allowDownloads: boolean) {
   return render(<CentralPanel t={t} locale="en" host={host} allowDownloads={allowDownloads} />);
 }
 
+// Render, then wait until the bundled catalog has rendered AND the offline
+// resolution has settled (the offline note appears), so no late state update
+// escapes act(). Used by the grid-level assertions below.
+async function renderAndSettle(allowDownloads: boolean) {
+  renderPanel(allowDownloads);
+  await screen.findByRole("heading", { name: "Freally Capture" });
+  await waitFor(() => expect(screen.getByText("fcp-status-offline")).toBeInTheDocument());
+}
+
 describe("CentralPanel view-only mode", () => {
   beforeEach(() => {
     // Offline: the catalog falls back to the bundled copy and release data stays
@@ -27,28 +36,21 @@ describe("CentralPanel view-only mode", () => {
   });
 
   it("hides Download-All yet keeps the grid and the type filter", async () => {
-    renderPanel(false);
-    await screen.findByRole("heading", { name: "Freally Capture" });
-    // Let the offline resolution settle so no state update escapes act().
-    await waitFor(() => expect(screen.getByText("fcp-status-offline")).toBeInTheDocument());
+    await renderAndSettle(false);
 
     expect(screen.queryByRole("button", { name: "fcp-install-all" })).toBeNull();
     expect(screen.getByRole("combobox")).toBeInTheDocument();
   });
 
   it("labels an available app 'Available', never 'Download'", async () => {
-    renderPanel(false);
-    await screen.findByRole("heading", { name: "Freally Capture" });
-    await waitFor(() => expect(screen.getByText("fcp-status-offline")).toBeInTheDocument());
+    await renderAndSettle(false);
 
     // Capture is available; its card pill must not invite a download here.
     expect(screen.queryByText("fcp-card-download")).toBeNull();
   });
 
   it("full mode still shows Download-All and the card's Download pill", async () => {
-    renderPanel(true);
-    await screen.findByRole("heading", { name: "Freally Capture" });
-    await waitFor(() => expect(screen.getByText("fcp-status-offline")).toBeInTheDocument());
+    await renderAndSettle(true);
 
     expect(screen.getByRole("button", { name: "fcp-install-all" })).toBeInTheDocument();
     expect(screen.getByText("fcp-card-download")).toBeInTheDocument();
@@ -65,5 +67,45 @@ describe("CentralPanel view-only mode", () => {
     expect(screen.queryByRole("button", { name: "fcp-card-download" })).toBeNull();
     expect(screen.queryByRole("button", { name: "fcp-action-install" })).toBeNull();
     expect(screen.queryByRole("button", { name: "fcp-open-app" })).toBeNull();
+  });
+
+  it("an available app with no site still offers its release page (never a dead-end)", async () => {
+    // A hosted manifest with an available app carrying only a `repo` (no `site`)
+    // — the latent case today's catalog never produces. Without the release-page
+    // fallback, view-only mode would show counts but no way to reach the app.
+    // Kept last: only this test seeds the loader's hosted-catalog memo, so it
+    // cannot leak into the bundled-fallback tests above.
+    const okJson = (body: unknown) =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve(body) } as unknown as Response);
+    const catalog = {
+      schemaVersion: 1,
+      brand: "Freally",
+      apps: [
+        {
+          id: "repo-only",
+          name: "Repo Only App",
+          status: "available",
+          repo: "MikesRuthless12/repo-only",
+          assets: { windows: "\\.exe$", macos: "\\.dmg$", linux: "\\.AppImage$" },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: unknown) =>
+        String(input).includes("freally-central.json")
+          ? okJson(catalog)
+          : Promise.reject(new Error("offline")),
+      ),
+    );
+    renderPanel(false);
+
+    const card = await screen.findByRole("button", { name: /Repo Only App/ });
+    fireEvent.click(card);
+    await screen.findByRole("heading", { level: 2, name: "Repo Only App" });
+
+    // The release page keeps the app reachable; still no in-app download control.
+    expect(screen.getByRole("button", { name: "fcp-detail-visit-site" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "fcp-card-download" })).toBeNull();
   });
 });

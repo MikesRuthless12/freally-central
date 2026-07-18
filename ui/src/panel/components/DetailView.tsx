@@ -89,6 +89,12 @@ export function DetailView({ app, release, installedVersion, downloads, allowDow
   const downloadLabelKey = status ? ACTION_KEY[action] : "fcp-card-download";
   // Open (FC-42): the app is on this machine — detected, or installed just now.
   const showOpen = allowDownloads && downloads.supported && status !== null && status !== "not-installed";
+  // The external page for an app. In view-only mode there is no in-app download,
+  // so an available app with no explicit `site` falls back to its release page —
+  // otherwise its detail would show counts but offer no way to reach it. Full
+  // mode is unchanged (the download CTA covers that path), and coming-soon apps
+  // never get a spurious link to an empty releases page.
+  const siteUrl = app.site ?? (!allowDownloads && !soon ? downloadUrl : undefined);
   const startPrimary = () => {
     if (downloads.supported && asset) {
       // The button's label is the consent: "Install"/"Update" run the whole
@@ -197,7 +203,7 @@ export function DetailView({ app, release, installedVersion, downloads, allowDow
 
       {soon && <p className="detail-note">{t("fcp-detail-coming-soon-note")}</p>}
 
-      {(live || app.site || showDownload || showOpen) && (
+      {(live || siteUrl || showDownload || showOpen) && (
         <div className="detail-actions">
           {showOpen && (
             <button type="button" className="btn btn-primary" onClick={openApp}>
@@ -209,11 +215,11 @@ export function DetailView({ app, release, installedVersion, downloads, allowDow
               {t("fcp-detail-whats-new")}
             </button>
           )}
-          {app.site && (
+          {siteUrl && (
             <button
               type="button"
               className={showDownload || showOpen ? "btn" : "btn btn-primary"}
-              onClick={() => openExternalUrl(host, app.site as string)}
+              onClick={() => openExternalUrl(host, siteUrl)}
             >
               {t("fcp-detail-visit-site")}
             </button>

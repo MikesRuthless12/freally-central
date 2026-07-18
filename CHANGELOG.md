@@ -3,6 +3,11 @@
 All notable changes to Freally Central are documented here. The top section is
 embedded into the app and shown in **Settings → What's New**.
 
+## Unreleased
+
+- **View-only embedding mode**: the "Central inside" panel now accepts an `allowDownloads={false}` prop that turns it into a pure showcase — the card grid, detail view, live release data, **real download counts**, and the **changelog viewer** all remain, while every Download / Install / Update / Open / Download-All control is hidden and an available app's card reads "Available" instead of "Download". Hosts that only surface the catalog (apps still in "coming soon") can embed the panel with no download machinery at all — the Rust engine crate becomes optional, so downloads are impossible at the backend rather than merely hidden. No new user-facing strings; 18-locale parity stays green.
+- **Housekeeping**: refreshed the Freally Vault card icon; removed the retired Freally Snipper from the embedding docs and roadmap.
+
 ## 0.7.0 — Phase 7: polish, distribution & auto-update
 
 - **In-app auto-update now resolves on every OS** (FC-60): the release pipeline publishes one consolidated, signed `latest.json` covering Windows, macOS (Intel + Apple Silicon) and Linux — built by merging each platform's updater fragment in a dedicated release job, instead of four matrix jobs each overwriting a single-OS manifest. **Settings → Check for updates** now resolves, and every update is still verified against the minisign public key baked into the app before it is applied. macOS builds are now ad-hoc signed, so first launch is a right-click → **Open** rather than a hard Gatekeeper block.
