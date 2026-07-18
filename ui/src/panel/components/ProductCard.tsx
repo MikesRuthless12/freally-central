@@ -16,10 +16,12 @@ interface ProductCardProps {
   installedVersion?: string | null;
   /** This app's download, when one ran this session (drives the card's bar). */
   download?: AppDownloadState;
+  /** When false (view-only host), an available app's pill reads "Available", not "Download". */
+  allowDownloads: boolean;
   onOpen: (app: CatalogApp) => void;
 }
 
-export function ProductCard({ app, release, installedVersion, download, onOpen }: ProductCardProps) {
+export function ProductCard({ app, release, installedVersion, download, allowDownloads, onOpen }: ProductCardProps) {
   const t = useT();
   const soon = app.status === "coming-soon";
   const tagline = appTagline(t, app);
@@ -46,7 +48,7 @@ export function ProductCard({ app, release, installedVersion, download, onOpen }
       <div className="card-foot">
         <div className="card-foot-row">
           <span className={soon ? "pill pill--soon" : "pill pill--view"}>
-            {soon ? t("fcp-coming-soon") : t("fcp-card-download")}
+            {soon ? t("fcp-coming-soon") : t(allowDownloads ? "fcp-card-download" : "fcp-available")}
           </span>
           {status && <StatusBadge status={status} />}
         </div>

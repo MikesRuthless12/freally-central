@@ -11,10 +11,12 @@ interface CardGridProps {
   installed: Map<string, string | null>;
   /** Download state per app id (absent key = no download this session). */
   downloads: ReadonlyMap<string, AppDownloadState>;
+  /** When false (view-only host), cards show an "Available" label, not "Download". */
+  allowDownloads: boolean;
   onOpen: (app: CatalogApp) => void;
 }
 
-export function CardGrid({ apps, releases, installed, downloads, onOpen }: CardGridProps) {
+export function CardGrid({ apps, releases, installed, downloads, allowDownloads, onOpen }: CardGridProps) {
   const t = useT();
   if (apps.length === 0) {
     return <p className="grid-empty">{t("fcp-grid-empty")}</p>;
@@ -28,6 +30,7 @@ export function CardGrid({ apps, releases, installed, downloads, onOpen }: CardG
           release={releases.get(app.id)}
           installedVersion={installed.get(app.id)}
           download={downloads.get(app.id)}
+          allowDownloads={allowDownloads}
           onOpen={onOpen}
         />
       ))}

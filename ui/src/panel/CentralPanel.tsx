@@ -26,6 +26,14 @@ export interface CentralPanelProps {
   locale: string;
   /** Shell actions only the host can perform. */
   host: PanelHost;
+  /**
+   * When false, the panel is a view-only showcase: every download / install /
+   * Download-All control is hidden, while the cards, detail view, live release
+   * data, real download counts, and the changelog viewer all stay. Defaults to
+   * true, so a host that ships downloads (Central itself, Freally Capture) is
+   * unchanged; hosts that only surface the catalog pass false.
+   */
+  allowDownloads?: boolean;
 }
 
 function matchesFilter(app: CatalogApp, filter: Filter): boolean {
@@ -35,7 +43,7 @@ function matchesFilter(app: CatalogApp, filter: Filter): boolean {
 // The full catalog renders in every host — including the host app itself,
 // whose card then honestly shows Installed ✓ / Update available. Hiding apps
 // here would also skew the brand-wide download total, which must stay real.
-export function CentralPanel({ t, locale, host }: CentralPanelProps) {
+export function CentralPanel({ t, locale, host, allowDownloads = true }: CentralPanelProps) {
   const catalog = useCatalog();
   const apps = catalog.apps;
   const releases = useReleases(apps);
@@ -84,6 +92,7 @@ export function CentralPanel({ t, locale, host }: CentralPanelProps) {
               release={releases.byId.get(selected.id)}
               installedVersion={mergedInstalled.get(selected.id)}
               downloads={downloads}
+              allowDownloads={allowDownloads}
               onBack={() => setSelectedId(null)}
             />
           ) : (
@@ -93,6 +102,7 @@ export function CentralPanel({ t, locale, host }: CentralPanelProps) {
                 onFilter={setFilter}
                 downloads={downloads}
                 entries={downloadAllEntries}
+                allowDownloads={allowDownloads}
               />
               {catalog.loaded && catalog.source === "bundled" && (
                 <p className="offline-note">{t("fcp-status-offline")}</p>
@@ -119,6 +129,7 @@ export function CentralPanel({ t, locale, host }: CentralPanelProps) {
                 releases={releases.byId}
                 installed={mergedInstalled}
                 downloads={downloads.byId}
+                allowDownloads={allowDownloads}
                 onOpen={(a) => setSelectedId(a.id)}
               />
             </>

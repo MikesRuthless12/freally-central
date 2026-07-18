@@ -29,6 +29,12 @@ interface DetailViewProps {
   /** Detected installed version: string, null (probed & absent), or undefined (not probed). */
   installedVersion?: string | null;
   downloads: DownloadsApi;
+  /**
+   * When false (view-only host), the Open / Install / Update / Download / Cancel
+   * controls and the live progress panel are hidden; the description, features,
+   * real download counts, and "What's New" changelog stay.
+   */
+  allowDownloads: boolean;
   onBack: () => void;
 }
 
@@ -46,7 +52,7 @@ const ACTION_KEY: Record<DownloadAction, string> = {
   redownload: "fcp-action-redownload",
 };
 
-export function DetailView({ app, release, installedVersion, downloads, onBack }: DetailViewProps) {
+export function DetailView({ app, release, installedVersion, downloads, allowDownloads, onBack }: DetailViewProps) {
   const { t, locale } = useI18n();
   const host = useHost();
   const [changelogOpen, setChangelogOpen] = useState(false);
@@ -76,11 +82,13 @@ export function DetailView({ app, release, installedVersion, downloads, onBack }
   // The primary download CTA shows for any available app with a source, whether
   // or not detection has resolved — a failed or still-loading probe must never
   // hide it. Its label reflects detected status when known, else a plain Download.
-  const showDownload = !soon && (downloadUrl !== undefined || engineReady);
+  // A view-only host (allowDownloads=false) never shows it — the app's own site
+  // becomes the primary CTA instead.
+  const showDownload = allowDownloads && !soon && (downloadUrl !== undefined || engineReady);
   const action: DownloadAction = status ? downloadAction(status) : "install";
   const downloadLabelKey = status ? ACTION_KEY[action] : "fcp-card-download";
   // Open (FC-42): the app is on this machine — detected, or installed just now.
-  const showOpen = downloads.supported && status !== null && status !== "not-installed";
+  const showOpen = allowDownloads && downloads.supported && status !== null && status !== "not-installed";
   const startPrimary = () => {
     if (downloads.supported && asset) {
       // The button's label is the consent: "Install"/"Update" run the whole
