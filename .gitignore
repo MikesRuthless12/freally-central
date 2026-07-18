@@ -40,6 +40,9 @@ Desktop.ini
 .idea/
 *.swp
 
+# --- Local agent config (not part of the repo) ---
+.claude/
+
 # --- Logs ---
 *.log
 npm-debug.log*
